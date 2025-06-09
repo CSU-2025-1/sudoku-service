@@ -2,7 +2,7 @@ import grpc
 from concurrent import futures
 from db.database import get_db
 from crud import users as crud_users
-from token import jwt_gen
+from jwt_token import jwt_gen
 
 import sys
 sys.path.append(r'../../generated/auth')
