@@ -11,6 +11,7 @@ import auth_pb2, auth_pb2_grpc
 # Временное хранилище пользователей (в реальности — база данных)
 # users = {}  # username -> password
 
+
 class AuthService(auth_pb2_grpc.AuthServiceServicer):
     def Register(self, request, context):
         db = get_db()
@@ -40,6 +41,7 @@ class AuthService(auth_pb2_grpc.AuthServiceServicer):
             success=True,
             token=token
         )
+
 
 def serve():
     server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))

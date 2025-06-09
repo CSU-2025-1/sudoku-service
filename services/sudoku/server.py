@@ -10,6 +10,7 @@ import sudoku_pb2_grpc
 
 N = 9
 
+
 class SudokuServicer(sudoku_pb2_grpc.SudokuServiceServicer):
     def is_safe(self, board, row, col, num):
         for x in range(N):
@@ -152,6 +153,7 @@ class SudokuServicer(sudoku_pb2_grpc.SudokuServiceServicer):
         except Exception as e:
             return sudoku_pb2.SudokuResponse(solution="", error=e)
 
+
 def serve():
     server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
     sudoku_pb2_grpc.add_SudokuServiceServicer_to_server(SudokuServicer(), server)
@@ -159,6 +161,7 @@ def serve():
     print("Sudoku сервис слушает на :50051")
     server.start()
     server.wait_for_termination()
+
 
 if __name__ == '__main__':
     logging.basicConfig()

@@ -10,6 +10,7 @@ import auth_pb2_grpc
 import sudoku_pb2
 import sudoku_pb2_grpc
 
+
 def main():
     # Инициализация соединений с gRPC-сервисами
     try:
@@ -29,6 +30,7 @@ def main():
     
     print("Server started at :8080")
     app.run(host='0.0.0.0', port=8080)
+
 
 if __name__ == '__main__':
     main()
