@@ -1,0 +1,17 @@
+services:
+  postgres:
+    image: postgres:17
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: sudoku_db
+    volumes:
+      - sudoku_data:/var/lib/postgresql/data
+    networks:
+      - sudoku_network
+
+networks:
+  sudoku_network:
+
+volumes:
+  sudoku_data:
