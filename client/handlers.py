@@ -15,10 +15,10 @@ import sudoku_pb2_grpc
 app = Flask(__name__)
 
 # Создаем gRPC клиентов
-auth_channel = grpc.insecure_channel('localhost:50052')
+auth_channel = grpc.insecure_channel('auth:50052')
 auth_client = auth_pb2_grpc.AuthServiceStub(auth_channel)
 
-sudoku_channel = grpc.insecure_channel('localhost:50051')
+sudoku_channel = grpc.insecure_channel('solver:50051')
 sudoku_client = sudoku_pb2_grpc.SudokuServiceStub(sudoku_channel)
 
 # Обработчики HTTP-запросов
@@ -40,7 +40,7 @@ def handle_register():
         ), timeout=5)
         return jsonify({'success': response.success})
     except Exception as e:
-        print("Auth Register error:", e)
+        logging.fatal(f"Auth Register error: {e}")
         return jsonify({'success': False, 'message': 'Auth service error'}), 500
 
 @app.route('/api/login', methods=['POST'])
@@ -63,7 +63,7 @@ def handle_login():
             'message': ''
         })
     except Exception as e:
-        print("Auth Login error:", e)
+        logging.fatal(f"Auth Login error: {e}")
         return jsonify({'success': False, 'message': 'Login failed'}), 500
 
 @app.route('/api/solve', methods=['POST'])
@@ -86,7 +86,7 @@ def handle_solve():
         ), timeout=5)
         return jsonify({'solution': response.solution})
     except Exception as e:
-        print("Sudoku solve error:", e)
+        logging.fatal(f"Sudoku solve error: {e}")
         return jsonify({'error': "Данное судоку не имеет решения"}), 200
 
 # Статические файлы (HTML)

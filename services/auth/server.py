@@ -13,7 +13,7 @@ import auth_pb2, auth_pb2_grpc
 
 class AuthService(auth_pb2_grpc.AuthServiceServicer):
     def Register(self, request, context):
-        db = get_db()
+        db = next(get_db())
         user = crud_users.get_user_by_name(db, request.username)
         if user is not None:
             return auth_pb2.RegisterResponse(
@@ -27,7 +27,7 @@ class AuthService(auth_pb2_grpc.AuthServiceServicer):
         )
 
     def Login(self, request, context):
-        db = get_db()
+        db = next(get_db())
         user = crud_users.get_user_by_name(db, request.username)
         password = user.password
         if password is None or password != request.password:
