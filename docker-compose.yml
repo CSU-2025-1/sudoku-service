@@ -10,6 +10,40 @@ services:
     networks:
       - sudoku_network
 
+  auth:
+    build: ./services/auth
+    depends_on: 
+      - postgres
+    volumes:
+      - ./generated:/app/generated
+    environment:
+      DATABASE_URL: postgresql://postgres:password@postgres:5432/sudoku_db
+    ports:
+      - "50052:50052"
+    networks:
+      - sudoku_network
+  
+  solver:
+    build: ./services/sudoku
+    volumes:
+      - ./generated:/app/generated
+    ports:
+      - "50051:50051"
+    networks:
+      - sudoku_network
+
+  client:
+    build: ./client
+    depends_on: 
+      - auth
+      - solver
+    volumes:
+      - ./generated:/app/generated
+    ports:
+      - "8080:8080"
+    networks:
+      - sudoku_network
+
 networks:
   sudoku_network:
 
