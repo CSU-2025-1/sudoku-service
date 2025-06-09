@@ -14,13 +14,13 @@ import sudoku_pb2_grpc
 def main():
     # Инициализация соединений с gRPC-сервисами
     try:
-        auth_channel = grpc.insecure_channel('localhost:50052')
+        auth_channel = grpc.insecure_channel('auth:50052')
         auth_client = auth_pb2_grpc.AuthServiceStub(auth_channel)
     except Exception as e:
         logging.fatal(f"Failed to connect to auth service: {e}")
     
     try:
-        sudoku_channel = grpc.insecure_channel('localhost:50051')
+        sudoku_channel = grpc.insecure_channel('solver:50051')
         sudoku_client = sudoku_pb2_grpc.SudokuServiceStub(sudoku_channel)
     except Exception as e:
         logging.fatal(f"Failed to connect to sudoku service: {e}")
