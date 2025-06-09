@@ -64,6 +64,7 @@
 <body>
     <!-- Кнопка выхода -->
     <button id="logoutBtn">Выйти из аккаунта</button>
+    <button id="playBtn">Играть в судоку</button>
     <h1>Решатель судоку</h1>
     <form id="sudokuForm">
         <table>
@@ -155,6 +156,11 @@
       localStorage.removeItem('token');
       alert('Вы вышли из аккаунта');
       window.location.href = '/login.html';
+    });
+
+    // Обработка перехода к игре в судоку
+    document.getElementById('playBtn').addEventListener('click', () => {
+      window.location.href = '/play_sudoku.html';
     });
 
     let currentStep = 0;
@@ -333,17 +339,17 @@
     };
 
     window.onload = () => {
-    const token = getToken();
-    if (!token) {
-      window.location.href = '/login.html';
-      return;
-    }
+        const token = getToken();
+        if (!token) {
+          window.location.href = '/login.html';
+          return;
+        }
 
-    const savedPuzzle = loadPuzzleState();
-    if (savedPuzzle) {
-        fillInputs(savedPuzzle);
-    }
-};
+        const savedPuzzle = loadPuzzleState();
+        if (savedPuzzle) {
+            fillInputs(savedPuzzle);
+        }
+    };
 
     function displayStep(stepIndex) {
         currentStep = stepIndex;

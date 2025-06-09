@@ -2,6 +2,7 @@ from db.database import Base
 from sqlalchemy import Column, Integer, String, Boolean, ForeignKey
 from sqlalchemy.orm import relationship
 
+
 class SudokuModel(Base):
     __tablename__ = "sudokus"
     id = Column(Integer, primary_key=True, index=True)

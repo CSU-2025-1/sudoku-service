@@ -7,7 +7,9 @@ from jwt_token import jwt_gen
 import sys
 sys.path.append(r'../../generated/auth')
 
-import auth_pb2, auth_pb2_grpc
+import auth_pb2
+import auth_pb2_grpc
+
 
 class AuthService(auth_pb2_grpc.AuthServiceServicer):
     def Register(self, request, context):
@@ -48,6 +50,7 @@ def serve():
     print("Auth service listening on :50052")
     server.start()
     server.wait_for_termination()
+
 
 if __name__ == '__main__':
     init_db()

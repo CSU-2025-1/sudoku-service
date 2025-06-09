@@ -44,6 +44,7 @@ def handle_register():
         logging.fatal(f"Auth Register error: {e}")
         return jsonify({'success': False, 'message': 'Auth service error'}), 500
 
+
 @app.route('/api/login', methods=['POST'])
 def handle_login():
     try:
@@ -93,6 +94,99 @@ def handle_solve():
         logging.fatal(f"Sudoku solve error: {e}")
         return jsonify({'error': "Данное судоку не имеет решения"}), 200
 
+# Пример данных для каждого судоку - добавим поле puzzle
+sudokus=[
+{
+"id":1,
+"level":"Легкий",
+"solved":False,
+"puzzle": [
+# пример поля — можно оставить нулями или заполнить числами для теста
+1,2,3,0,0,0,0,0,
+0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0]
+},
+{
+"id":2,
+"level":"Средний",
+"solved":False,
+"puzzle": [
+# пример поля — можно оставить нулями или заполнить числами для теста
+4,5,6,0,0,0,0,0,
+0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0]
+},
+{
+"id":3,
+"level":"Тяжелый",
+"solved":False,
+"puzzle": [
+# пример поля — можно оставить нулями или заполнить числами для теста
+7,8,9,0,0,0,0,0,
+0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0,
+0,0,0,0,0,0,0,0]
+}
+]
+
+
+@app.route('/api/sudoku', methods=['GET'])
+def get_sudokus():
+    # Возвращаем список всех судоку без поля puzzle для краткости или с ним по желанию
+    return jsonify([{"id": s["id"], "level": s["level"], "solved": s["solved"]} for s in sudokus])
+
+
+@app.route('/api/sudoku/<int:sudoku_id>', methods=['GET'])
+def get_sudoku(sudoku_id):
+    # Возвращаем конкретный судоку с полем puzzle
+    for s in sudokus:
+        if s['id']==sudoku_id:
+            return jsonify(s)
+    return jsonify({"error":"Не найдено"}),404
+
+
+@app.route('/api/check_sudoku', methods=['POST'])
+def check_sudoku():
+    data=request.get_json()
+    sudoku_id= data.get('id')
+    solution= data.get('solution') # массив из чисел
+
+    if sudoku_id is None or solution is None:
+        return jsonify({"correct":False}),400
+
+    # На заглушке просто считаем верным если сумма чисел равна определенному значению или по условию.
+    # Или делаем простую проверку — например все числа от 1 до 9 без нулей.
+    correct=True
+    for num in solution:
+        if num<1 or num>9:
+            correct=False
+            break
+
+    # Можно дополнительно проверить соответствие исходной головоломке и т.п.
+
+    # Обновляем статус решения в данных (если нужно)
+    for s in sudokus:
+        if s['id']==sudoku_id:
+            if correct:
+                s['solved']=True
+                break
+
+    return jsonify({"correct":correct})
+
 
 # Статические файлы (HTML)
 @app.route('/register.html')
@@ -108,6 +202,11 @@ def serve_login_page():
 @app.route('/sudoku.html')
 def serve_sudoku_page():
     return app.send_static_file('sudoku.html')
+
+
+@app.route('/play_sudoku.html')
+def serve_play_sudoku_page():
+    return app.send_static_file('play_sudoku.html')
 
 
 if __name__ == '__main__':
