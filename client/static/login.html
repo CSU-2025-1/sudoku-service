@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8" />
+    <title>Вход</title>
+    <style>
+        body {
+            background-color: #0f0f3b;
+            color: aliceblue;
+            margin: 20px;
+            font-family: Cambria, Cochin, Georgia, Times, 'Times New Roman', serif;
+        }
+        input {
+            width: 200px;
+            height: 40px;
+            text-align: center;
+            font-size: 24px;
+            margin: 10px;
+            color: aliceblue;
+            background-color: #262441;
+            font-family: Cambria, Cochin, Georgia, Times, 'Times New Roman', serif;
+        }
+        div.field {
+            display: flex;
+            align-items: center;
+        }
+        label, p {
+            font-size: 20px;
+            min-width: 200px;
+        }
+        button {
+            padding: 10px 30px;
+            margin: 10px 20px 10px 0;
+            font-size: 20px;
+            border: none;
+            border-radius: 15px;
+            color: #262441;
+            background-color: lightskyblue;
+            font-weight: bold;
+            font-family: Cambria, Cochin, Georgia, Times, 'Times New Roman', serif;
+        }
+        a {
+          color: lightskyblue;
+        }
+    </style>
+</head>
+<body>
+<h1>Войти</h1>
+<form id="loginForm">
+  <div class="field">
+    <label>Имя пользователя:</label>
+    <input type="text" id="username" required />
+  </div>
+  <div class="field">
+    <label for="password">Пароль:</label>
+    <input type="password" id="password" /><br>
+  </div>
+  <button type="submit">Войти</button>
+</form>
+
+<!-- Кнопка для перехода на страницу регистрации -->
+<p>Нет аккаунта? <a href="/register.html">Зарегистрироваться</a></p>
+
+<script>
+document.getElementById('loginForm').addEventListener('submit', async function(e) {
+  e.preventDefault();
+  const username = document.getElementById('username').value;
+  const password = document.getElementById('password').value;
+  const response = await fetch('/api/login', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({username, password})
+  });
+  const result = await response.json();
+  if (result.success) {
+    localStorage.setItem('token', result.token);
+    window.location.href = '/sudoku.html';
+  } else {
+    alert('Ошибка входа');
+  }
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,299 @@
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Решатель судоку</title>
+    <style>
+        body {
+            background-color: #0f0f3b;
+            color: aliceblue;
+            margin: 20px;
+            font-family: Cambria, Cochin, Georgia, Times, 'Times New Roman', serif;
+        }
+        table {
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        td {
+            border: 1px solid lightskyblue;
+            width: 40px; /* Фиксированная ширина */
+            height: 40px; /* Фиксированная высота */
+            text-align: center;
+            color: aliceblue;
+            background-color: #262441;
+        }
+        input {
+            width: 40px;
+            height: 40px;
+            text-align: center;
+            font-size: 24px;
+            color: aliceblue;
+            background-color: #262441;
+            font-family: Cambria, Cochin, Georgia, Times, 'Times New Roman', serif;
+        }
+        button {
+            padding: 10px 30px;
+            margin: 10px 20px 10px 0;
+            font-size: 20px;
+            border: none;
+            border-radius: 15px;
+            color: #262441;
+            background-color: lightskyblue;
+            font-weight: bold;
+            font-family: Cambria, Cochin, Georgia, Times, 'Times New Roman', serif;
+        }
+        .result {
+            text-align: center;
+            font-size: 24px;
+            pointer-events: none; /* Отключаем взаимодействие с ячейками результата */
+        }
+        .top {
+            border-top: 4px solid lightskyblue;
+        }
+        .bottom {
+            border-bottom: 4px solid lightskyblue;
+        }
+        .left {
+            border-left: 4px solid lightskyblue;
+        }
+        .right {
+            border-right: 4px solid lightskyblue;
+        }
+    </style>
+</head>
+<body>
+    <!-- Кнопка выхода -->
+    <button id="logoutBtn">Выйти из аккаунта</button>
+    <h1>Решатель судоку</h1>
+    <form id="sudokuForm">
+        <table>
+            <tbody>
+                <script>
+                    for (let i = 0; i < 9; i++) {
+                        document.write('<tr>');
+                        for (let j = 0; j < 9; j++) {
+                            // Определяем классы для границ
+                            let classes = '';
+                            if (i % 3 === 0)    classes += 'top ';
+                            if (i === 8)        classes += 'bottom ';
+                            if (j % 3 === 0)    classes += 'left ';
+                            if (j === 8)        classes += 'right ';
+                            document.write(`<td class="${classes.trim()}"><input type="number" min="0" max="9" maxlength="1" oninput="this.value = this.value.slice(0, 1)" /></td>`);
+                        }
+                        document.write('</tr>');
+                    }
+                </script>
+            </tbody>
+        </table>
+        <button type="button" id="solveButton">Решить сразу</button>
+        <button type="button" id="stepButton">Решить по шагам</button>
+        <div id="stepControls" style="display: none;">
+            <button type="button" id="prevStepButton">⬅</button>
+            <button type="button" id="nextStepButton">⮕</button>
+        </div>
+    </form>
+    <h2 id="resultTitle" style="display: none;">Результат:</h2>
+    <div id="resultContainer">
+        <table id="resultTable" style="display: none;">
+            <tbody></tbody>
+        </table>
+    </div> <!-- Контейнер для таблицы результатов -->
+    <script>
+    // Проверка авторизации
+    const token = localStorage.getItem('token');
+    if (!token) {
+      // Перенаправление на страницу регистрации
+      window.location.href = '/login.html';
+    }
+
+    // Обработка выхода из аккаунта
+    document.getElementById('logoutBtn').addEventListener('click', () => {
+      localStorage.removeItem('token');
+      alert('Вы вышли из аккаунта');
+      window.location.href = '/login.html';
+    });
+
+    let currentStep = 0;
+    let steps = [];
+
+    async function sendRequest(endpoint, isSteps) {
+        const inputs = document.querySelectorAll('input');
+        const input = [];
+        for (let i = 0; i < 9; i++) {
+            for (let j = 0; j < 9; j++) {
+                const value = parseInt(inputs[i * 9 + j].value) || 0; // 0 для пустых клеток
+                input.push(value);
+            }
+        }
+        // Преобразуем массив чисел в строку
+        const inputString = input.join('');
+
+        const response = await fetch(endpoint, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': localStorage.getItem('token'),
+            },
+            body: JSON.stringify({ Puzzle: inputString, IsSteps: isSteps }) // отправляем как объект с ключом
+        });
+
+        if (response.status === 401) {
+          // Токен недействителен или отсутствует
+          localStorage.removeItem('token');
+          alert('Ваша сессия истекла. Пожалуйста, войдите снова');
+          window.location.href = '/login.html';
+          return;
+        }
+
+        if (response.ok) {
+            const json = await response.json();
+            if (json.error != undefined) {
+              alert(json.error);
+              return;
+            }
+            if (isSteps) {
+                steps = parseSteps(json.solution);
+                currentStep = -1; // Сбрасываем текущий шаг
+            } else {
+                createResultTable(parseBoard(json.solution));
+                document.getElementById('stepControls').style.display = 'none'; // Скрываем кнопки шагов
+            }
+        } else {
+            json = response.json()
+            alert('Во время решения возникла ошибка. Статус ошибки: ' + response.status);
+        }
+    }
+
+    const N = 9; // размер доски
+
+    // Парсит строку в двумерный массив [N][N]int
+    function parseBoard(str) {
+      const totalLength = N * N;
+      if (str.length !== totalLength) {
+        throw new Error('Некорректная длина строки для заданного N');
+      }
+      const result = [];
+      for (let i = 0; i < N; i++) {
+        const rowStr = str.slice(i * N, (i + 1) * N);
+        const row = [];
+        for (let ch of rowStr) {
+          row.push(parseInt(ch, 10));
+        }
+        result.push(row);
+      }
+      return result;
+    }
+
+    // Парсит строку в массив шагов: [][N][N]int
+    function parseSteps(str) {
+      const steps = [];
+      const totalCellsPerStep = N * N;
+      const totalCells = str.length;
+      
+      if (totalCells % totalCellsPerStep !== 0) {
+        throw new Error('Длина строки не делится на размер шага');
+      }
+      
+      const numSteps = totalCells / totalCellsPerStep;
+      
+      for (let s = 0; s < numSteps; s++) {
+        const stepStr = str.slice(s * totalCellsPerStep, (s + 1) * totalCellsPerStep);
+        const step = [];
+        for (let i = 0; i < N; i++) {
+          const rowStr = stepStr.slice(i * N, (i + 1) * N);
+          const row = [];
+          for (let ch of rowStr) {
+            row.push(parseInt(ch,10));
+          }
+          step.push(row);
+        }
+        steps.push(step);
+      }
+      
+      return steps;
+    }
+
+    function createResultTable(solution) {
+        const resultTable = document.getElementById('resultTable');
+        const tbody = resultTable.querySelector('tbody');
+        tbody.innerHTML = ''; // Очищаем контейнер перед добавлением новой таблицы
+
+        for (let i = 0; i < 9; i++) {
+            const row = document.createElement('tr');
+            for (let j = 0; j < 9; j++) {
+                const cell = document.createElement('td');
+                cell.className = (i % 3 === 0 ? 'top ' : '') + (i === 8 ? 'bottom ' : '') + 
+                                (j % 3 === 0 ? 'left ' : '') + (j === 8 ? 'right ' : '');
+                cell.textContent = solution[i][j] === 0 ? '' : solution[i][j];
+                row.appendChild(cell);
+            }
+            tbody.appendChild(row);
+        }
+
+        resultTable.style.display = 'table'; // Показываем таблицу результатов
+    }
+
+    document.getElementById('solveButton').onclick = function() {
+        const token = localStorage.getItem('token');
+        if (!token) {
+          alert('Пожалуйста, войдите в аккаунт для решения судоку.');
+          window.location.href = '/login.html';
+          return;
+        }
+
+        document.getElementById('stepControls').style.display = 'none'; // Скрываем кнопки шагов
+        document.getElementById('resultTitle').style.display = 'block';
+        const resultTable = document.getElementById('resultTable');
+        resultTable.querySelector('tbody').innerHTML = ''; // Удаляем предыдущую таблицу результатов
+        sendRequest('/api/solve', false); // Отправляем запрос на решение
+    };
+
+    document.getElementById('stepButton').onclick = function() {
+        const token = localStorage.getItem('token');
+        if (!token) {
+          alert('Пожалуйста, войдите в аккаунт для решения судоку.');
+          window.location.href = '/login.html';
+          return;
+        }
+        document.getElementById('resultTitle').style.display = 'none';
+        resultTable.querySelector('tbody').innerHTML = ''; // Удаляем таблицу результатов
+        document.getElementById('stepControls').style.display = 'block'; // Показываем кнопки шагов
+        sendRequest('/api/solve', true);
+    };
+
+    document.getElementById('prevStepButton').onclick = function() {
+        if (currentStep > 0) {
+            currentStep--;
+            displayStep(currentStep);
+        }
+    };
+
+    document.getElementById('nextStepButton').onclick = function() {
+        if (currentStep < steps.length - 1) {
+            currentStep++;
+            displayStep(currentStep);
+        }
+    };
+
+    function displayStep(stepIndex) {
+        currentStep = stepIndex;
+
+        const step = steps[stepIndex]; // Получаем текущий шаг
+        fillInputs(step); // Обновляем значения в таблице ввода
+
+        // Обновляем видимость кнопок "вперёд" и "назад"
+        document.getElementById('prevStepButton').disabled = currentStep === 0; 
+        document.getElementById('nextStepButton').disabled = currentStep === steps.length - 1; 
+    }
+
+    function fillInputs(step) {
+        const inputs = document.querySelectorAll('input');
+        for (let i = 0; i < step.length; i++) { 
+            for (let j = 0; j < step[i].length; j++) {
+                inputs[i * 9 + j].value = step[i][j] === null ? '' : step[i][j]; 
+            } 
+        } 
+    }
+    </script>
+</body>
+</html>
