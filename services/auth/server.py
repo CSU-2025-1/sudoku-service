@@ -1,6 +1,6 @@
 import grpc
 from concurrent import futures
-from db.database import get_db
+from db.database import get_db, init_db
 from crud import users as crud_users
 from jwt_token import jwt_gen
 
@@ -50,4 +50,5 @@ def serve():
     server.wait_for_termination()
 
 if __name__ == '__main__':
+    init_db()
     serve()
