@@ -40,6 +40,7 @@ class AuthService(auth_pb2_grpc.AuthServiceServicer):
             token=token
         )
 
+
 def serve():
     server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
     auth_pb2_grpc.add_AuthServiceServicer_to_server(AuthService(), server)
