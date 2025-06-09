@@ -8,6 +8,8 @@ sys.path.append(r'../../generated/sudoku')
 import sudoku_pb2
 import sudoku_pb2_grpc
 
+from db.database import init_db
+
 N = 9
 
 
@@ -165,4 +167,5 @@ def serve():
 
 if __name__ == '__main__':
     logging.basicConfig()
+    init_db()
     serve()
