@@ -99,6 +99,50 @@
         </table>
     </div> <!-- Контейнер для таблицы результатов -->
     <script>
+
+    // Сохраняем токен
+    function saveToken(token) {
+        localStorage.setItem('token', token);
+    }
+
+    // Получаем токен
+    function getToken() {
+        return localStorage.getItem('token');
+    }
+
+    // Удаляем токен
+    function removeToken() {
+        localStorage.removeItem('token');
+    }
+
+    // Сохраняем текущие заполненные клетки судоку
+    function savePuzzleState() {
+        const inputs = document.querySelectorAll('input');
+        const puzzle = [];
+        for (let i = 0; i < 9; i++) {
+            for (let j = 0; j < 9; j++) {
+                const val = parseInt(inputs[i * 9 + j].value);
+                puzzle.push(isNaN(val) ? 0 : val);
+            }
+        }
+        localStorage.setItem('puzzleState', JSON.stringify(puzzle));
+    }
+
+    // Загружаем сохраненное состояние судоку
+    function loadPuzzleState() {
+        const puzzleStr = localStorage.getItem('puzzleState');
+        if (!puzzleStr) return null;
+        try {
+            const puzzle = JSON.parse(puzzleStr);
+            if (Array.isArray(puzzle) && puzzle.length === 81) {
+                return puzzle;
+            }
+            return null;
+        } catch(e) {
+            return null;
+        }
+    }
+
     // Проверка авторизации
     const token = localStorage.getItem('token');
     if (!token) {
@@ -117,49 +161,62 @@
     let steps = [];
 
     async function sendRequest(endpoint, isSteps) {
+        const token = getToken();
+        if (!token) {
+            alert('Пожалуйста, войдите в аккаунт.');
+            window.location.href = '/login.html';
+            return;
+        }
+
+        // Можно добавить регулярную проверку срока действия токена, если есть серверная поддержка.
+        // Например, отправить запрос на проверку или использовать JWT с истечением срока.
+
+        // Собираем текущие данные судоку
         const inputs = document.querySelectorAll('input');
-        const input = [];
+        const inputValues = [];
         for (let i = 0; i < 9; i++) {
             for (let j = 0; j < 9; j++) {
-                const value = parseInt(inputs[i * 9 + j].value) || 0; // 0 для пустых клеток
-                input.push(value);
+                const value = parseInt(inputs[i * 9 + j].value);
+                inputValues.push(isNaN(value) ? 0 : value);
             }
         }
-        // Преобразуем массив чисел в строку
-        const inputString = input.join('');
 
+        // Сохраняем состояние перед отправкой
+        savePuzzleState();
+
+        // Отправляем запрос
         const response = await fetch(endpoint, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': localStorage.getItem('token'),
+                'Authorization': token,
             },
-            body: JSON.stringify({ Puzzle: inputString, IsSteps: isSteps }) // отправляем как объект с ключом
+            body: JSON.stringify({ Puzzle: inputValues.join(''), IsSteps: isSteps })
         });
 
         if (response.status === 401) {
-          // Токен недействителен или отсутствует
-          localStorage.removeItem('token');
-          alert('Ваша сессия истекла. Пожалуйста, войдите снова');
-          window.location.href = '/login.html';
-          return;
+            removeToken();
+            alert('Ваша сессия истекла. Пожалуйста, войдите снова.');
+            window.location.href = '/login.html';
+            return;
         }
 
         if (response.ok) {
             const json = await response.json();
             if (json.error != undefined) {
-              alert(json.error);
-              return;
+                alert(json.error);
+                return;
             }
             if (isSteps) {
                 steps = parseSteps(json.solution);
-                currentStep = -1; // Сбрасываем текущий шаг
+                currentStep = -1;
+                // Можно дополнительно сохранить шаги в localStorage, если нужно
+                localStorage.setItem('steps', JSON.stringify(steps));
             } else {
                 createResultTable(parseBoard(json.solution));
-                document.getElementById('stepControls').style.display = 'none'; // Скрываем кнопки шагов
+                document.getElementById('stepControls').style.display = 'none';
             }
         } else {
-            json = response.json()
             alert('Во время решения возникла ошибка. Статус ошибки: ' + response.status);
         }
     }
@@ -275,6 +332,19 @@
         }
     };
 
+    window.onload = () => {
+    const token = getToken();
+    if (!token) {
+      window.location.href = '/login.html';
+      return;
+    }
+
+    const savedPuzzle = loadPuzzleState();
+    if (savedPuzzle) {
+        fillInputs(savedPuzzle);
+    }
+};
+
     function displayStep(stepIndex) {
         currentStep = stepIndex;
 
@@ -285,6 +355,12 @@
         document.getElementById('prevStepButton').disabled = currentStep === 0; 
         document.getElementById('nextStepButton').disabled = currentStep === steps.length - 1; 
     }
+
+    document.querySelectorAll('input').forEach(input => {
+    input.addEventListener('input', () => {
+       savePuzzleState();
+       });
+    });
 
     function fillInputs(step) {
         const inputs = document.querySelectorAll('input');
