@@ -2,14 +2,12 @@ import grpc
 from concurrent import futures
 from db.database import get_db
 from crud import users as crud_users
+from jwt import jwt_gen
 
 import sys
 sys.path.append(r'../../generated/auth')
 
 import auth_pb2, auth_pb2_grpc
-
-# Временное хранилище пользователей (в реальности — база данных)
-# users = {}  # username -> password
 
 class AuthService(auth_pb2_grpc.AuthServiceServicer):
     def Register(self, request, context):
@@ -27,15 +25,16 @@ class AuthService(auth_pb2_grpc.AuthServiceServicer):
         )
 
     def Login(self, request, context):
+        username = request.username
         db = get_db()
-        user = crud_users.get_user_by_name(db, request.username)
+        user = crud_users.get_user_by_name(db, username)
         password = user.password
         if password is None or password != request.password:
             return auth_pb2.LoginResponse(
                 success=False,
                 token=""
             )
-        token = "dummy-token-for-" + request.username  # В реальности — JWT или другой токен.
+        token = jwt_gen.generate_jwt(username)
         return auth_pb2.LoginResponse(
             success=True,
             token=token
