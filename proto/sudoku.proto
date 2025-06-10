@@ -7,6 +7,7 @@ option go_package = "/sudoku";
 service SudokuService {
   rpc Solve (SudokuRequest) returns (SudokuResponse);
   rpc GetSudokuList (GetSudokuRequest) returns (GetSudokuResponse);
+  rpc CheckSudoku(CheckSudokuRequest) returns (CheckSudokuResponse);
 }
 
 message SudokuRequest {
@@ -29,4 +30,12 @@ message GetSudokuResponse {
   repeated int32 difficulties = 3;
   repeated bool isSolved = 4;
   string error = 5;
+}
+
+message CheckSudokuRequest {
+    string solution = 1;
+}
+
+message CheckSudokuResponse {
+    bool isCorrect = 1;
 }

@@ -161,30 +161,6 @@ class SudokuServicer(sudoku_pb2_grpc.SudokuServiceServicer):
         db = next(get_db())
         data = crud_sudokus.get_sudoku_list(db)
 
-        # sudoku_array = [
-        #     {'sudoku_str': '060005702004096010871302000500071300030050070007820005000509687080260100706400020',
-        #      'difficulty': 1},
-        #     {'sudoku_str': '203060008070051300059000000402630059000090000390014206000000420001840030700020905',
-        #      'difficulty': 1},
-        #     {'sudoku_str': '024380000000006007058000400400010000000705000000020008001000670300500000000049210',
-        #      'difficulty': 2},
-        #     {'sudoku_str': '800000003500800704000000060060980100007000400008061090050000000302004008100000005',
-        #      'difficulty': 2},
-        #     {'sudoku_str': '000080005001900000700000016000100609305000104608003000560000002000005400900020000',
-        #      'difficulty': 2},
-        #     {'sudoku_str': '000000208920004000000208071036000000000709000000000640860401000000900027209000000',
-        #      'difficulty': 3},
-        #     {'sudoku_str': '009000100004030000000567030000000017801000204290000000070351000000040600008000900',
-        #      'difficulty': 3},
-        #     {'sudoku_str': '060320700020000004000017000057000060000506000080000520000140000500000080003072090',
-        #      'difficulty': 3},
-        # ]
-        #
-        # for sudoku in sudoku_array:
-        #     sudoku_str = sudoku['sudoku_str']
-        #     difficulty = sudoku['difficulty']
-        #     crud_sudokus.create_sudoku(db, sudoku_str, difficulty)
-
         ids = [item.id for item in data]
         boards = [item.board_str for item in data]
         difficulties = [item.difficulty for item in data]
@@ -203,6 +179,45 @@ class SudokuServicer(sudoku_pb2_grpc.SudokuServiceServicer):
                 is_solved.append(False)
 
         return sudoku_pb2.GetSudokuResponse(ids=ids, boards=boards, difficulties=difficulties, isSolved=is_solved)
+
+    def CheckSudoku(self, request: sudoku_pb2.CheckSudokuRequest, context) -> sudoku_pb2.CheckSudokuResponse:
+        # Предлагаемое решение
+        proposed_solution = request.solution.strip()  # Удаляем лишние пробелы
+
+        # Предварительно проверяем длину строки
+        if len(proposed_solution) != N * N:
+            return sudoku_pb2.CheckSudokuResponse(isCorrect=False)
+
+        # Попытка построить матрицу
+        try:
+            grid = [[int(proposed_solution[N * i + j]) for j in range(N)] for i in range(N)]
+        except ValueError:
+            return sudoku_pb2.CheckSudokuResponse(isCorrect=False)
+
+        # Проверка валидности
+        def is_valid_grid(grid):
+            # Проверка рядов
+            for row in grid:
+                if sorted([cell for cell in row if cell != 0]) != list(range(1, 10)):
+                    return False
+
+            # Проверка колонок
+            for col in zip(*grid):
+                if sorted([cell for cell in col if cell != 0]) != list(range(1, 10)):
+                    return False
+
+            # Проверка блоков 3х3
+            for block_i in range(0, N, 3):
+                for block_j in range(0, N, 3):
+                    block = [grid[i][j] for i in range(block_i, block_i + 3) for j in range(block_j, block_j + 3)]
+                    if sorted([cell for cell in block if cell != 0]) != list(range(1, 10)):
+                        return False
+
+            return True
+
+        # Основной вызов проверки
+        is_correct = is_valid_grid(grid)
+        return sudoku_pb2.CheckSudokuResponse(isCorrect=is_correct)
 
 
 def serve():

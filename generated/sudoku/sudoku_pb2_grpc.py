@@ -44,6 +44,11 @@ class SudokuServiceStub(object):
                 request_serializer=sudoku__pb2.GetSudokuRequest.SerializeToString,
                 response_deserializer=sudoku__pb2.GetSudokuResponse.FromString,
                 _registered_method=True)
+        self.CheckSudoku = channel.unary_unary(
+                '/sudoku.SudokuService/CheckSudoku',
+                request_serializer=sudoku__pb2.CheckSudokuRequest.SerializeToString,
+                response_deserializer=sudoku__pb2.CheckSudokuResponse.FromString,
+                _registered_method=True)
 
 
 class SudokuServiceServicer(object):
@@ -61,6 +66,12 @@ class SudokuServiceServicer(object):
         context.set_details('Method not implemented!')
         raise NotImplementedError('Method not implemented!')
 
+    def CheckSudoku(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
 
 def add_SudokuServiceServicer_to_server(servicer, server):
     rpc_method_handlers = {
@@ -73,6 +84,11 @@ def add_SudokuServiceServicer_to_server(servicer, server):
                     servicer.GetSudokuList,
                     request_deserializer=sudoku__pb2.GetSudokuRequest.FromString,
                     response_serializer=sudoku__pb2.GetSudokuResponse.SerializeToString,
+            ),
+            'CheckSudoku': grpc.unary_unary_rpc_method_handler(
+                    servicer.CheckSudoku,
+                    request_deserializer=sudoku__pb2.CheckSudokuRequest.FromString,
+                    response_serializer=sudoku__pb2.CheckSudokuResponse.SerializeToString,
             ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
@@ -129,6 +145,33 @@ class SudokuService(object):
             '/sudoku.SudokuService/GetSudokuList',
             sudoku__pb2.GetSudokuRequest.SerializeToString,
             sudoku__pb2.GetSudokuResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def CheckSudoku(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/sudoku.SudokuService/CheckSudoku',
+            sudoku__pb2.CheckSudokuRequest.SerializeToString,
+            sudoku__pb2.CheckSudokuResponse.FromString,
             options,
             channel_credentials,
             insecure,
