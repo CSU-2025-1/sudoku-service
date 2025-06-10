@@ -16,6 +16,7 @@ message SudokuRequest {
 
 message SudokuResponse {
   string solution = 1;
+  string error = 2;
 }
 
 message GetSudokuRequest {
@@ -27,4 +28,5 @@ message GetSudokuResponse {
   repeated string boards = 2;
   repeated int32 difficulties = 3;
   repeated bool isSolved = 4;
+  string error = 5;
 }

@@ -155,44 +155,45 @@ class SudokuServicer(sudoku_pb2_grpc.SudokuServiceServicer):
             else:
                 return sudoku_pb2.SudokuResponse(solution=solution_str)
         except Exception as e:
-            return sudoku_pb2.SudokuResponse(solution="", error=e)
+            return sudoku_pb2.SudokuResponse(solution="", error=str(e))
 
     def GetSudokuList(self, request: sudoku_pb2.GetSudokuRequest, context) -> sudoku_pb2.GetSudokuResponse:
         db = next(get_db())
         data = crud_sudokus.get_sudoku_list(db)
 
-        sudoku_array = [
-            {'sudoku_str': '53..7....6..195....98....6.8...6...34..8.3..17...2...6.6....28....419..5....8..79',
-             'difficulty': 5},
-            {'sudoku_str': '..3.2.6..9..3.5..1..18.64....81.29..7.......8..67.82....26.95..8..2.3..9..5.1.3..',
-             'difficulty': 4},
-            {'sudoku_str': '.2.6.5.....37.........6......1...........83.4..1.7.........2.5...........4.',
-             'difficulty': 3},
-            {'sudoku_str': '8..........36......7..9.2...5...7.......457.....1...3...1....68..85...1..9....4...',
-             'difficulty': 5},
-            {'sudoku_str': '52...6.........7.13...........4..8..6......5...........418.........3..2...87...',
-             'difficulty': 4},
-            {'sudoku_str': '6.....8.3.4.7.................5.4.7.3..2.....1.6.......2.....5.....8.6......1....',
-             'difficulty': 3},
-            {'sudoku_str': '2........3...85..1.2.......5.7.....4...1...9.......5......73..4.8.6........4..',
-             'difficulty': 5},
-            {'sudoku_str': '1...7.9...2...5...9...1...67...85...1.3...4..8.3..4...4..7.6...3.5...7...1...2',
-             'difficulty': 4},
-            {'sudoku_str': '...6.5.3...4...8...1...2...9...5...7...3...6...1...8...4...7...2...9...5.8.6...',
-             'difficulty': 3},
-        ]
-
-        for sudoku in sudoku_array:
-            sudoku_str = sudoku['sudoku_str']
-            difficulty = sudoku['difficulty']
-            crud_sudokus.create_sudoku(db, sudoku_str, difficulty)
+        # sudoku_array = [
+        #     {'sudoku_str': '060005702004096010871302000500071300030050070007820005000509687080260100706400020',
+        #      'difficulty': 1},
+        #     {'sudoku_str': '203060008070051300059000000402630059000090000390014206000000420001840030700020905',
+        #      'difficulty': 1},
+        #     {'sudoku_str': '024380000000006007058000400400010000000705000000020008001000670300500000000049210',
+        #      'difficulty': 2},
+        #     {'sudoku_str': '800000003500800704000000060060980100007000400008061090050000000302004008100000005',
+        #      'difficulty': 2},
+        #     {'sudoku_str': '000080005001900000700000016000100609305000104608003000560000002000005400900020000',
+        #      'difficulty': 2},
+        #     {'sudoku_str': '000000208920004000000208071036000000000709000000000640860401000000900027209000000',
+        #      'difficulty': 3},
+        #     {'sudoku_str': '009000100004030000000567030000000017801000204290000000070351000000040600008000900',
+        #      'difficulty': 3},
+        #     {'sudoku_str': '060320700020000004000017000057000060000506000080000520000140000500000080003072090',
+        #      'difficulty': 3},
+        # ]
+        #
+        # for sudoku in sudoku_array:
+        #     sudoku_str = sudoku['sudoku_str']
+        #     difficulty = sudoku['difficulty']
+        #     crud_sudokus.create_sudoku(db, sudoku_str, difficulty)
 
         ids = [item.id for item in data]
         boards = [item.board_str for item in data]
         difficulties = [item.difficulty for item in data]
 
-        user_id = jwt_gen.decode_jwt(request.token)['user_id']
-        solved_boards = crud_sudokus.get_solved_sudokus(db, user_id)
+        try:
+            user_id = jwt_gen.decode_jwt(request.token)['user_id']
+            solved_boards = crud_sudokus.get_solved_sudokus(db, user_id)
+        except Exception as e:
+            return sudoku_pb2.GetSudokuResponse(ids=[], boards=[], difficulties=[], isSolved=[], error=str(e))
 
         is_solved = []
         for sudoku_id in ids:

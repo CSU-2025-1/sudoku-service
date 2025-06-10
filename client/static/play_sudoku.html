@@ -117,7 +117,8 @@ function renderSudokuList(sudokus) {
 
     sudokus.forEach((sudoku) => {
         const btn = document.createElement('button');
-        btn.textContent = `Судоку ID:${sudoku.id}, Уровень: ${sudoku.difficulty}`;
+        const statusEmoji = sudoku.isSolved ? "🟢" : "🔴";
+        btn.textContent = `Судоку ${sudoku.id}, Сложность: ${sudoku.difficulty} ${statusEmoji}`;
         btn.onclick = () => loadSudoku(sudoku.board);
         container.appendChild(btn);
     });

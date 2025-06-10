@@ -5,8 +5,6 @@ from flask import Flask, request, jsonify
 
 import sys
 
-from client.jwt_token.jwt_check import is_token_valid
-
 sys.path.append(r'../generated/auth')
 sys.path.append(r'../generated/sudoku')
 
@@ -105,8 +103,6 @@ def get_sudokus():
     token = request.headers.get('Authorization')
     if not token:
         return jsonify({'error': 'Unauthorized'}), 401
-    if not is_token_valid(token):
-        return jsonify({'error': 'Token is expired'}), 401
 
     try:
         response = sudoku_client.GetSudokuList(sudoku_pb2.GetSudokuRequest(token=token), timeout=5)
@@ -122,15 +118,6 @@ def get_sudokus():
     except Exception as e:
         logging.fatal(f'Sudoku get error: {e}')
         return jsonify({'error': 'Не удалось получить судоку'}), 500
-
-
-@app.route('/api/sudoku/<int:sudoku_id>', methods=['GET'])
-def get_sudoku(sudoku_id):
-    # Возвращаем конкретный судоку с полем puzzle
-    for s in sudokus:
-        if s['id']==sudoku_id:
-            return jsonify(s)
-    return jsonify({"error":"Не найдено"}),404
 
 
 @app.route('/api/check_sudoku', methods=['POST'])
