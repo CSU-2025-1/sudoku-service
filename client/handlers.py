@@ -4,6 +4,9 @@ import logging
 from flask import Flask, request, jsonify
 
 import sys
+
+from client.jwt_token.jwt_check import is_token_valid
+
 sys.path.append(r'../generated/auth')
 sys.path.append(r'../generated/sudoku')
 
@@ -75,6 +78,8 @@ def handle_solve():
     token = request.headers.get('Authorization')
     if not token:
         return jsonify({'error': 'Unauthorized'}), 401
+    if not is_token_valid(token):
+        return jsonify({'error': 'Token is expired'}), 401
 
     try:
         data = request.get_json()
@@ -100,6 +105,8 @@ def get_sudokus():
     token = request.headers.get('Authorization')
     if not token:
         return jsonify({'error': 'Unauthorized'}), 401
+    if not is_token_valid(token):
+        return jsonify({'error': 'Token is expired'}), 401
 
     try:
         response = sudoku_client.GetSudokuList(sudoku_pb2.SudokuRequest(
