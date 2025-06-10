@@ -5,6 +5,8 @@ services:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: password
       POSTGRES_DB: sudoku_db
+    ports:
+      - "5432:5432"
     volumes:
       - sudoku_data:/var/lib/postgresql/data
     networks:
