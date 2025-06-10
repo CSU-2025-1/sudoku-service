@@ -75,7 +75,8 @@ def handle_login():
 
 @app.route('/api/solve', methods=['POST'])
 def handle_solve():
-    check_result = check_token_valid(request)
+    token = request.headers.get('Authorization')
+    check_result = check_token_valid(token)
     if check_result:
         return check_result
     try:
@@ -99,7 +100,8 @@ def handle_solve():
 
 @app.route('/api/sudoku', methods=['GET'])
 def get_sudokus():
-    check_result = check_token_valid(request)
+    token = request.headers.get('Authorization')
+    check_result = check_token_valid(token)
     if check_result:
         return check_result
 
@@ -121,12 +123,13 @@ def get_sudokus():
 
 @app.route('/api/check_sudoku', methods=['POST'])
 def check_sudoku():
-    check_result = check_token_valid(request)
+    token = request.headers.get('Authorization')
+    check_result = check_token_valid(token)
     if check_result:
         return check_result
     data=request.get_json()
     sudoku_id= data.get('id')
-    solution= data.get('solution') # массив из чисел
+    solution= data.get('solution')
 
     if sudoku_id is None or solution is None:
         return jsonify({"correct":False}),400
