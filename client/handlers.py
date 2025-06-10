@@ -5,6 +5,8 @@ from flask import Flask, request, jsonify
 
 import sys
 
+from jwt_token.jwt_check import check_token_valid
+
 sys.path.append(r'../generated/auth')
 sys.path.append(r'../generated/sudoku')
 
@@ -73,12 +75,9 @@ def handle_login():
 
 @app.route('/api/solve', methods=['POST'])
 def handle_solve():
-    token = request.headers.get('Authorization')
-    if not token:
-        return jsonify({'error': 'Unauthorized'}), 401
-    if not is_token_valid(token):
-        return jsonify({'error': 'Token is expired'}), 401
-
+    check_result = check_token_valid(request)
+    if check_result:
+        return check_result
     try:
         data = request.get_json()
         puzzle = data['Puzzle']
@@ -100,9 +99,9 @@ def handle_solve():
 
 @app.route('/api/sudoku', methods=['GET'])
 def get_sudokus():
-    token = request.headers.get('Authorization')
-    if not token:
-        return jsonify({'error': 'Unauthorized'}), 401
+    check_result = check_token_valid(request)
+    if check_result:
+        return check_result
 
     try:
         response = sudoku_client.GetSudokuList(sudoku_pb2.GetSudokuRequest(token=token), timeout=5)
@@ -122,6 +121,9 @@ def get_sudokus():
 
 @app.route('/api/check_sudoku', methods=['POST'])
 def check_sudoku():
+    check_result = check_token_valid(request)
+    if check_result:
+        return check_result
     data=request.get_json()
     sudoku_id= data.get('id')
     solution= data.get('solution') # массив из чисел
