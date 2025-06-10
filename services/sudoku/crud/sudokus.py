@@ -3,7 +3,7 @@ from db.models import SudokuModel, SolvedSudokuModel
 
 
 def create_sudoku(db: Session, sudoku_str: str, difficulty: int) -> SudokuModel:
-    sudoku = SudokuModel(sudoku_str=sudoku_str, difficulty=difficulty)
+    sudoku = SudokuModel(board_str=sudoku_str, difficulty=difficulty)
     db.add(sudoku)
     db.commit()
     db.refresh(sudoku)

@@ -96,28 +96,34 @@ async function loadSudokus() {
     const data = await response.json();  // получаем сырые данные от сервера
     console.log(data);                   // полезно проверить формат данных
 
-    // Собираем список судоку, комбинируя идентификаторы, доски, сложность и статус решения
-    let sudokus = [];
-    for(let i = 0; i < data.ids.length; i++) {
-        sudokus.push({
-            id: data.ids[i],
-            board: data.boards[i],
-            difficulty: data.difficulties[i],
-            isSolved: data.is_solved[i]
-        });
-    }
+    if (response.ok) {
+        // Собираем список судоку, комбинируя идентификаторы, доски, сложность и статус решения
+        let sudokus = [];
+        for(let i = 0; i < data.ids.length; i++) {
+            sudokus.push({
+                id: data.ids[i],
+                board: data.boards[i],
+                difficulty: data.difficulties[i],
+                isSolved: data.is_solved[i]
+            });
+        }
 
-    renderSudokuList(sudokus);
+        renderSudokuList(sudokus);
+    } else {
+        alert('Во время решения возникла ошибка. Статус ошибки: ' + response.status);
+    }
 }
 
 // Рендеринг списка судоку
 function renderSudokuList(sudokus) {
     const container = document.getElementById('sudokuList');
-    container.innerHTML = '';           // очищаем контейнер перед отрисовкой
+    container.innerHTML = '';
 
     sudokus.forEach((sudoku) => {
         const btn = document.createElement('button');
-        btn.textContent = `Судоку ID:${sudoku.id}, Уровень: ${sudoku.difficulty}`;
+        const statusEmoji = sudoku.isSolved ? "🟢" : "🔴";
+        btn.setAttribute('data-id', sudoku.id);
+        btn.textContent = `Судоку ${sudoku.id}, Сложность: ${sudoku.difficulty} ${statusEmoji}`;
         btn.onclick = () => loadSudoku(sudoku.board);
         container.appendChild(btn);
     });
@@ -175,23 +181,37 @@ function renderSudoku(puzzleString) {
 
 // Проверка решения
 async function checkSolution() {
-    if (!currentSudoku) return;
-
     // Собираем решение из таблицы
     const inputs = document.querySelectorAll('#currentSudoku input');
 
     const solution = Array.from(inputs).map(input => parseInt(input.value) || 0);
+    const solutionStr = solution.map(num => num.toString()).join('');
 
     // Отправляем на проверку
     const response = await fetch(`/api/check_sudoku`, {
       method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({id : currentSudoku.id, solution})
+      headers: {
+                'Content-Type': 'application/json',
+                'Authorization': token,
+            },
+      body: JSON.stringify({ Solution: solutionStr })
     });
 
-    const resultData= await response.json();
+    const resultData = await response.json();
 
-    document.getElementById('resultMsg').textContent= resultData.correct ? 'Решение верное!' : 'Решение неверное!';
+    if (resultData.isCorrect) {
+        changeStatusIndicator(currentSudoku.id, true);
+    }
+    document.getElementById('resultMsg').textContent= resultData.isCorrect ? 'Решение верное!' : 'Решение неверное!';
+}
+
+function changeStatusIndicator(sudokuId, isCorrect) {
+    const buttons = document.querySelectorAll(`#sudokuList button[data-id="${sudokuId}"]`);
+    buttons.forEach(button => {
+        if (isCorrect) {
+            button.textContent = button.textContent.replace(/🔴/, "🟢");
+        }
+    });
 }
 
 // Обработка выхода из аккаунта

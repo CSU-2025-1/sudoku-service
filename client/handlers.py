@@ -127,31 +127,19 @@ def check_sudoku():
     check_result = check_token_valid(token)
     if check_result:
         return check_result
-    data=request.get_json()
-    sudoku_id= data.get('id')
-    solution= data.get('solution')
+    try:
+        data = request.get_json()
+        solution = data['Solution']
+    except Exception as e:
+        logging.fatal(f"Invalid request error: {e}")
+        return jsonify({'error': 'Invalid request'}), 400
 
-    if sudoku_id is None or solution is None:
-        return jsonify({"correct":False}),400
-
-    # На заглушке просто считаем верным если сумма чисел равна определенному значению или по условию.
-    # Или делаем простую проверку — например все числа от 1 до 9 без нулей.
-    correct=True
-    for num in solution:
-        if num<1 or num>9:
-            correct=False
-            break
-
-    # Можно дополнительно проверить соответствие исходной головоломке и т.п.
-
-    # Обновляем статус решения в данных (если нужно)
-    for s in sudokus:
-        if s['id']==sudoku_id:
-            if correct:
-                s['solved']=True
-                break
-
-    return jsonify({"correct":correct})
+    try:
+        response = sudoku_client.CheckSudoku(sudoku_pb2.CheckSudokuRequest(solution=solution), timeout=5)
+        return jsonify({'isCorrect': response.isCorrect})
+    except Exception as e:
+        logging.fatal(f'Sudoku check error: {e}')
+        return jsonify({'error': 'Не удалось проверить решение'}), 500
 
 
 # Статические файлы (HTML)
