@@ -118,16 +118,18 @@
 
     // Сохраняем текущие заполненные клетки судоку
     function savePuzzleState() {
-        const inputs = document.querySelectorAll('input');
-        const puzzle = [];
-        for (let i = 0; i < 9; i++) {
-            for (let j = 0; j < 9; j++) {
-                const val = parseInt(inputs[i * 9 + j].value);
-                puzzle.push(isNaN(val) ? 0 : val);
-            }
-        }
-        localStorage.setItem('puzzleState', JSON.stringify(puzzle));
+    const form = document.getElementById('sudokuForm');
+    
+    const inputs = form.querySelectorAll('input');
+
+    const puzzle = [];
+
+    for (const input of inputs) {
+        const val = parseInt(input.value, 10);
+        puzzle.push(isNaN(val) ? 0 : val);
     }
+    localStorage.setItem('puzzleState', JSON.stringify(puzzle));
+}
 
     // Загружаем сохраненное состояние судоку
     function loadPuzzleState() {
@@ -368,14 +370,24 @@
        });
     });
 
-    function fillInputs(step) {
-        const inputs = document.querySelectorAll('input');
-        for (let i = 0; i < step.length; i++) { 
-            for (let j = 0; j < step[i].length; j++) {
-                inputs[i * 9 + j].value = step[i][j] === null ? '' : step[i][j]; 
-            } 
-        } 
+
+function fillTableValues(step) {
+    const table = document.querySelector('#sudokuForm table');
+
+    const cells = table.querySelectorAll('td');
+
+    for (let rowIndex = 0; rowIndex < 9; rowIndex++) {
+        for (let colIndex = 0; colIndex < 9; colIndex++) {
+            const cellValue = step[rowIndex][colIndex];
+
+            if (cellValue === null || cellValue === '') {
+                cells[rowIndex * 9 + colIndex].innerText = '';
+            } else {
+                cells[rowIndex * 9 + colIndex].innerText = cellValue.toString();
+            }
+        }
     }
+}
     </script>
 </body>
 </html>

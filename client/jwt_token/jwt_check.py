@@ -2,8 +2,7 @@ import jwt
 from datetime import datetime, timedelta
 from flask import Flask, request, jsonify
 
-def check_token_valid (request):
-    token = request.headers.get('Authorization')
+def check_token_valid (token):
     if not token:
         return jsonify({'error': 'Unauthorized'}), 401
     data = jwt.decode(token, algorithms='HS256', subject='admin', key='JWT_SECRET')

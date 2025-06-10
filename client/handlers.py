@@ -75,7 +75,8 @@ def handle_login():
 
 @app.route('/api/solve', methods=['POST'])
 def handle_solve():
-    check_result = check_token_valid(request)
+    token = request.headers.get('Authorization')
+    check_result = check_token_valid(token)
     if check_result:
         return check_result
     try:
@@ -99,12 +100,12 @@ def handle_solve():
 
 @app.route('/api/sudoku', methods=['GET'])
 def get_sudokus():
-    check_result = check_token_valid(request)
+    token = request.headers.get('Authorization')
+    check_result = check_token_valid(token)
     if check_result:
         return check_result
 
     try:
-        token = request.headers.get('Authorization')
         response = sudoku_client.GetSudokuList(sudoku_pb2.GetSudokuRequest(token=token), timeout=5)
 
         sudoku_data = {
@@ -122,7 +123,8 @@ def get_sudokus():
 
 @app.route('/api/check_sudoku', methods=['POST'])
 def check_sudoku():
-    check_result = check_token_valid(request)
+    token = request.headers.get('Authorization')
+    check_result = check_token_valid(token)
     if check_result:
         return check_result
     try:
