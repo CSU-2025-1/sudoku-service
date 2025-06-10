@@ -102,16 +102,19 @@ def get_sudokus():
         return jsonify({'error': 'Unauthorized'}), 401
 
     try:
-        response = sudoku_client.GetSudokuList(sudoku_pb2.SudokuRequest(
-            token=token
-        ), timeout=5)
-        return jsonify({'ids': response.ids,
-                        'boards': response.boards,
-                        'difficulties': response.difficulties,
-                        'is_solved': response.isSolved})
+        response = sudoku_client.GetSudokuList(sudoku_pb2.GetSudokuRequest(token=token), timeout=5)
+
+        sudoku_data = {
+            'ids': list(response.ids),
+            'boards': list(response.boards),
+            'difficulties': list(response.difficulties),
+            'is_solved': list(response.isSolved)
+        }
+
+        return jsonify(sudoku_data)
     except Exception as e:
-        logging.fatal(f"Sudoku get error: {e}")
-        return jsonify({'error': "Не удалось получить судоку"}), 500
+        logging.fatal(f'Sudoku get error: {e}')
+        return jsonify({'error': 'Не удалось получить судоку'}), 500
 
 
 @app.route('/api/sudoku/<int:sudoku_id>', methods=['GET'])

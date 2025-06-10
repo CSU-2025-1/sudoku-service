@@ -74,12 +74,25 @@
 
 <script>
 
+// Проверка авторизации
+const token = localStorage.getItem('token');
+if (!token) {
+  // Перенаправление на страницу регистрации
+  window.location.href = '/login.html';
+}
+
 let sudokus = [];
 let currentSudoku = null;
 
 // Загрузка списка судоку
 async function loadSudokus() {
-    const response = await fetch(`/api/sudoku`);
+    const response = await fetch(`/api/sudoku`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': token,
+            }
+        });
     const data = await response.json();  // получаем сырые данные от сервера
     console.log(data);                   // полезно проверить формат данных
 
@@ -89,12 +102,12 @@ async function loadSudokus() {
         sudokus.push({
             id: data.ids[i],
             board: data.boards[i],
-            level: data.difficulties[i],
+            difficulty: data.difficulties[i],
             isSolved: data.is_solved[i]
         });
     }
 
-    renderSudokuList(sudokus);          // передаем список судоку для рендеринга
+    renderSudokuList(sudokus);
 }
 
 // Рендеринг списка судоку
@@ -104,65 +117,50 @@ function renderSudokuList(sudokus) {
 
     sudokus.forEach((sudoku) => {
         const btn = document.createElement('button');
-        btn.textContent = `Судоку ID:${sudoku.id}, Уровень: ${sudoku.level}`;
-        btn.onclick = () => loadSudoku(sudoku.id);  // загрузка конкретного судоку
+        btn.textContent = `Судоку ID:${sudoku.id}, Уровень: ${sudoku.difficulty}`;
+        btn.onclick = () => loadSudoku(sudoku.board);
         container.appendChild(btn);
     });
 }
 
 // Загрузка конкретного судоку
-async function loadSudoku(id) {
-    const response = await fetch(`/api/sudoku/${id}`);
-    currentSudoku = await response.json();
-    renderSudoku(currentSudoku);
+async function loadSudoku(board) {
+    renderSudoku(board);
 }
 
 // Отрисовка судоку
-function renderSudoku(sudoku) {
+function renderSudoku(puzzleString) {
     const container = document.getElementById('currentSudoku');
     container.innerHTML = '';
 
     const table = document.createElement('table');
     const tbody = document.createElement('tbody');
 
-    // Предположим, что у нас есть поле "puzzle" - массив из 81 элементов (или null)
-    // Для заглушки создадим случайное поле или используем фиктивное
-    // В реальности API должен возвращать поле "puzzle"
+    // Преобразуем входящую строку в массив из 81 элемента
+    const puzzleArray = [...puzzleString].map(char => char !== '0' ? parseInt(char) : '');
 
-    // Для примера создадим фиктивное поле:
-
-    if (!sudoku.puzzle) {
-      // Создаем фиктивное поле с нулями
-      sudoku.puzzle = Array(81).fill(0);
-      // Можно добавить случайные числа или оставить нулями
-      for (let i=0; i<81; i++) {
-          if (Math.random() < 0.3) sudoku.puzzle[i] = Math.ceil(Math.random()*9);
-      }
-      // В реальности API возвращает поле
-    }
-
-    for (let i=0; i<9; i++) {
+    for (let i = 0; i < 9; i++) {
         const tr = document.createElement('tr');
 
-        for (let j=0; j<9; j++) {
-            const index = i*9 + j;
+        for (let j = 0; j < 9; j++) {
+            const index = i * 9 + j;
 
             let classes = '';
-            if (i %3 ===0) classes += ' top';
-            if (i===8) classes += ' bottom';
-            if (j%3===0) classes += ' left';
-            if (j===8) classes += ' right';
+            if (i % 3 === 0 && i != 0) classes += ' top'; // Верхняя граница блока
+            if (i === 8) classes += ' bottom'; // Нижняя граница
+            if (j % 3 === 0 && j != 0) classes += ' left'; // Левая граница блока
+            if (j === 8) classes += ' right'; // Правая граница
 
             const td = document.createElement('td');
-            td.className=classes.trim();
+            td.className = classes.trim();
 
             const inputEl = document.createElement('input');
-            inputEl.type='number';
-            inputEl.min='0';
-            inputEl.max='9';
-            inputEl.value= sudoku.puzzle[index] || '';
-            inputEl.oninput=function() {
-                this.value=this.value.slice(0,1);
+            inputEl.type = 'number';
+            inputEl.min = '0';
+            inputEl.max = '9';
+            inputEl.value = puzzleArray[index]; // Значение ячейки из массива
+            inputEl.oninput = function () {
+                this.value = this.value.slice(0, 1); // Ограничиваем ввод одной цифрой
             };
             td.appendChild(inputEl);
             tr.appendChild(td);

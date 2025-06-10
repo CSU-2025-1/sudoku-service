@@ -15,7 +15,7 @@ def get_sudoku_list(db: Session) -> list[SudokuModel]:
 
 
 def get_sudoku_by_id(db: Session, sudoku_id: int) -> SudokuModel | None:
-    return db.query(SudokuModel).filter(SudokuModel.id == sudoku_id).first()
+    return db.query(SudokuModel.board_str).filter(SudokuModel.id == sudoku_id).first()
 
 
 def delete_sudoku(db: Session, sudoku_id: int) -> bool:

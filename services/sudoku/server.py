@@ -2,6 +2,7 @@ import grpc
 from concurrent import futures
 import logging
 from jwt_token import jwt_gen
+from crud import sudokus as crud_sudokus
 
 import sys
 sys.path.append(r'../../generated/sudoku')
@@ -9,7 +10,7 @@ sys.path.append(r'../../generated/sudoku')
 import sudoku_pb2
 import sudoku_pb2_grpc
 
-from db.database import init_db
+from db.database import get_db, init_db
 
 N = 9
 
@@ -160,12 +161,38 @@ class SudokuServicer(sudoku_pb2_grpc.SudokuServiceServicer):
         db = next(get_db())
         data = crud_sudokus.get_sudoku_list(db)
 
+        sudoku_array = [
+            {'sudoku_str': '53..7....6..195....98....6.8...6...34..8.3..17...2...6.6....28....419..5....8..79',
+             'difficulty': 5},
+            {'sudoku_str': '..3.2.6..9..3.5..1..18.64....81.29..7.......8..67.82....26.95..8..2.3..9..5.1.3..',
+             'difficulty': 4},
+            {'sudoku_str': '.2.6.5.....37.........6......1...........83.4..1.7.........2.5...........4.',
+             'difficulty': 3},
+            {'sudoku_str': '8..........36......7..9.2...5...7.......457.....1...3...1....68..85...1..9....4...',
+             'difficulty': 5},
+            {'sudoku_str': '52...6.........7.13...........4..8..6......5...........418.........3..2...87...',
+             'difficulty': 4},
+            {'sudoku_str': '6.....8.3.4.7.................5.4.7.3..2.....1.6.......2.....5.....8.6......1....',
+             'difficulty': 3},
+            {'sudoku_str': '2........3...85..1.2.......5.7.....4...1...9.......5......73..4.8.6........4..',
+             'difficulty': 5},
+            {'sudoku_str': '1...7.9...2...5...9...1...67...85...1.3...4..8.3..4...4..7.6...3.5...7...1...2',
+             'difficulty': 4},
+            {'sudoku_str': '...6.5.3...4...8...1...2...9...5...7...3...6...1...8...4...7...2...9...5.8.6...',
+             'difficulty': 3},
+        ]
+
+        for sudoku in sudoku_array:
+            sudoku_str = sudoku['sudoku_str']
+            difficulty = sudoku['difficulty']
+            crud_sudokus.create_sudoku(db, sudoku_str, difficulty)
+
         ids = [item.id for item in data]
         boards = [item.board_str for item in data]
         difficulties = [item.difficulty for item in data]
 
-        user_id = jwt_gen.decode_jwt(request.token).user_id
-        solved_boards = crud_sudokus.get_solved_sudokus(user_id)
+        user_id = jwt_gen.decode_jwt(request.token)['user_id']
+        solved_boards = crud_sudokus.get_solved_sudokus(db, user_id)
 
         is_solved = []
         for sudoku_id in ids:
