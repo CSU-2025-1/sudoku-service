@@ -80,18 +80,32 @@ let currentSudoku = null;
 // Загрузка списка судоку
 async function loadSudokus() {
     const response = await fetch(`/api/sudoku`);
-    sudokus = await response.json();
-    renderSudokuList();
+    const data = await response.json();  // получаем сырые данные от сервера
+    console.log(data);                   // полезно проверить формат данных
+
+    // Собираем список судоку, комбинируя идентификаторы, доски, сложность и статус решения
+    let sudokus = [];
+    for(let i = 0; i < data.ids.length; i++) {
+        sudokus.push({
+            id: data.ids[i],
+            board: data.boards[i],
+            level: data.difficulties[i],
+            isSolved: data.is_solved[i]
+        });
+    }
+
+    renderSudokuList(sudokus);          // передаем список судоку для рендеринга
 }
 
-// Отрисовка списка судоку
-function renderSudokuList() {
+// Рендеринг списка судоку
+function renderSudokuList(sudokus) {
     const container = document.getElementById('sudokuList');
-    container.innerHTML = '';
-    sudokus.forEach(sudoku => {
+    container.innerHTML = '';           // очищаем контейнер перед отрисовкой
+
+    sudokus.forEach((sudoku) => {
         const btn = document.createElement('button');
-        btn.textContent = `Судоку ${sudoku.id} (${sudoku.level})`;
-        btn.onclick = () => loadSudoku(sudoku.id);
+        btn.textContent = `Судоку ID:${sudoku.id}, Уровень: ${sudoku.level}`;
+        btn.onclick = () => loadSudoku(sudoku.id);  // загрузка конкретного судоку
         container.appendChild(btn);
     });
 }

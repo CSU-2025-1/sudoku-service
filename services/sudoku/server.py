@@ -1,6 +1,7 @@
 import grpc
 from concurrent import futures
 import logging
+from jwt_token import jwt_gen
 
 import sys
 sys.path.append(r'../../generated/sudoku')
@@ -154,6 +155,26 @@ class SudokuServicer(sudoku_pb2_grpc.SudokuServiceServicer):
                 return sudoku_pb2.SudokuResponse(solution=solution_str)
         except Exception as e:
             return sudoku_pb2.SudokuResponse(solution="", error=e)
+
+    def GetSudokuList(self, request: sudoku_pb2.GetSudokuRequest, context) -> sudoku_pb2.GetSudokuResponse:
+        db = next(get_db())
+        data = crud_sudokus.get_sudoku_list(db)
+
+        ids = [item.id for item in data]
+        boards = [item.board_str for item in data]
+        difficulties = [item.difficulty for item in data]
+
+        user_id = jwt_gen.decode_jwt(request.token).user_id
+        solved_boards = crud_sudokus.get_solved_sudokus(user_id)
+
+        is_solved = []
+        for sudoku_id in ids:
+            if sudoku_id in solved_boards:
+                is_solved.append(True)
+            else:
+                is_solved.append(False)
+
+        return sudoku_pb2.GetSudokuResponse(ids=ids, boards=boards, difficulties=difficulties, isSolved=is_solved)
 
 
 def serve():

@@ -5,7 +5,7 @@ import warnings
 
 import sudoku_pb2 as sudoku__pb2
 
-GRPC_GENERATED_VERSION = '1.71.0'
+GRPC_GENERATED_VERSION = '1.73.0'
 GRPC_VERSION = grpc.__version__
 _version_not_supported = False
 
@@ -39,12 +39,23 @@ class SudokuServiceStub(object):
                 request_serializer=sudoku__pb2.SudokuRequest.SerializeToString,
                 response_deserializer=sudoku__pb2.SudokuResponse.FromString,
                 _registered_method=True)
+        self.GetSudokuList = channel.unary_unary(
+                '/sudoku.SudokuService/GetSudokuList',
+                request_serializer=sudoku__pb2.GetSudokuRequest.SerializeToString,
+                response_deserializer=sudoku__pb2.GetSudokuResponse.FromString,
+                _registered_method=True)
 
 
 class SudokuServiceServicer(object):
     """Missing associated documentation comment in .proto file."""
 
     def Solve(self, request, context):
+        """Missing associated documentation comment in .proto file."""
+        context.set_code(grpc.StatusCode.UNIMPLEMENTED)
+        context.set_details('Method not implemented!')
+        raise NotImplementedError('Method not implemented!')
+
+    def GetSudokuList(self, request, context):
         """Missing associated documentation comment in .proto file."""
         context.set_code(grpc.StatusCode.UNIMPLEMENTED)
         context.set_details('Method not implemented!')
@@ -57,6 +68,11 @@ def add_SudokuServiceServicer_to_server(servicer, server):
                     servicer.Solve,
                     request_deserializer=sudoku__pb2.SudokuRequest.FromString,
                     response_serializer=sudoku__pb2.SudokuResponse.SerializeToString,
+            ),
+            'GetSudokuList': grpc.unary_unary_rpc_method_handler(
+                    servicer.GetSudokuList,
+                    request_deserializer=sudoku__pb2.GetSudokuRequest.FromString,
+                    response_serializer=sudoku__pb2.GetSudokuResponse.SerializeToString,
             ),
     }
     generic_handler = grpc.method_handlers_generic_handler(
@@ -86,6 +102,33 @@ class SudokuService(object):
             '/sudoku.SudokuService/Solve',
             sudoku__pb2.SudokuRequest.SerializeToString,
             sudoku__pb2.SudokuResponse.FromString,
+            options,
+            channel_credentials,
+            insecure,
+            call_credentials,
+            compression,
+            wait_for_ready,
+            timeout,
+            metadata,
+            _registered_method=True)
+
+    @staticmethod
+    def GetSudokuList(request,
+            target,
+            options=(),
+            channel_credentials=None,
+            call_credentials=None,
+            insecure=False,
+            compression=None,
+            wait_for_ready=None,
+            timeout=None,
+            metadata=None):
+        return grpc.experimental.unary_unary(
+            request,
+            target,
+            '/sudoku.SudokuService/GetSudokuList',
+            sudoku__pb2.GetSudokuRequest.SerializeToString,
+            sudoku__pb2.GetSudokuResponse.FromString,
             options,
             channel_credentials,
             insecure,

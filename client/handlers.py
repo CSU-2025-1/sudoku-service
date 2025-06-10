@@ -94,60 +94,24 @@ def handle_solve():
         logging.fatal(f"Sudoku solve error: {e}")
         return jsonify({'error': "Данное судоку не имеет решения"}), 200
 
-# Пример данных для каждого судоку - добавим поле puzzle
-sudokus=[
-{
-"id":1,
-"level":"Легкий",
-"solved":False,
-"puzzle": [
-# пример поля — можно оставить нулями или заполнить числами для теста
-1,2,3,0,0,0,0,0,
-0,0,0,0,0,0,0,0,
-0,0,0,0,0,0,0,0,
-0,0,0,0,0,0,0,0,
-0,0,0,0,0,0,0,0,
-0,0,0,0,0,0,0,0,
-0,0,0,0,0,0,0,0,
-0,0,0,0,0,0,0,0]
-},
-{
-"id":2,
-"level":"Средний",
-"solved":False,
-"puzzle": [
-# пример поля — можно оставить нулями или заполнить числами для теста
-4,5,6,0,0,0,0,0,
-0,0,0,0,0,0,0,0,
-0,0,0,0,0,0,0,0,
-0,0,0,0,0,0,0,0,
-0,0,0,0,0,0,0,0,
-0,0,0,0,0,0,0,0,
-0,0,0,0,0,0,0,0,
-0,0,0,0,0,0,0,0]
-},
-{
-"id":3,
-"level":"Тяжелый",
-"solved":False,
-"puzzle": [
-# пример поля — можно оставить нулями или заполнить числами для теста
-7,8,9,0,0,0,0,0,
-0,0,0,0,0,0,0,0,
-0,0,0,0,0,0,0,0,
-0,0,0,0,0,0,0,0,
-0,0,0,0,0,0,0,0,
-0,0,0,0,0,0,0,0,
-0,0,0,0,0,0,0,0,
-0,0,0,0,0,0,0,0]
-}
-]
-
 
 @app.route('/api/sudoku', methods=['GET'])
 def get_sudokus():
-    # Возвращаем список всех судоку без поля puzzle для краткости или с ним по желанию
-    return jsonify([{"id": s["id"], "level": s["level"], "solved": s["solved"]} for s in sudokus])
+    token = request.headers.get('Authorization')
+    if not token:
+        return jsonify({'error': 'Unauthorized'}), 401
+
+    try:
+        response = sudoku_client.GetSudokuList(sudoku_pb2.SudokuRequest(
+            token=token
+        ), timeout=5)
+        return jsonify({'ids': response.ids,
+                        'boards': response.boards,
+                        'difficulties': response.difficulties,
+                        'is_solved': response.isSolved})
+    except Exception as e:
+        logging.fatal(f"Sudoku get error: {e}")
+        return jsonify({'error': "Не удалось получить судоку"}), 500
 
 
 @app.route('/api/sudoku/<int:sudoku_id>', methods=['GET'])
