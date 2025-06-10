@@ -36,7 +36,7 @@ class AuthService(auth_pb2_grpc.AuthServiceServicer):
                 success=False,
                 token=""
             )
-        token = jwt_gen.generate_jwt(username)
+        token = jwt_gen.generate_jwt(username, user.id)
         return auth_pb2.LoginResponse(
             success=True,
             token=token
