@@ -224,7 +224,10 @@ class SudokuServicer(sudoku_pb2_grpc.SudokuServiceServicer):
         if is_correct:
             user_id = jwt_gen.decode_jwt(request.token)['user_id']
             sudoku_id = request.sudokuId
-            crud_sudokus.mark_sudoku_solved(db, user_id, sudoku_id)
+            solved_sudokus = redis_client.get(user_id.__str__)
+            if solved_sudokus is None:
+                solved_sudokus = [sudoku_id]
+            redis_client.set(user_id.__str__, solved_sudokus.append(sudoku_id.__str__))
 
         return sudoku_pb2.CheckSudokuResponse(isCorrect=is_correct)
 
