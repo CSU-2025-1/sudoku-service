@@ -13,6 +13,8 @@ import sudoku_pb2_grpc
 
 from db.database import get_db, init_db
 
+logging.basicConfig(level=logging.INFO, filename='app.log')
+
 N = 9
 
 redis_client: redis.Redis | None = redis.Redis(host='localhost', port=6379, db=0)
@@ -183,7 +185,7 @@ class SudokuServicer(sudoku_pb2_grpc.SudokuServiceServicer):
         return sudoku_pb2.GetSudokuResponse(ids=ids, boards=boards, difficulties=difficulties, isSolved=is_solved)
 
     def CheckSudoku(self, request: sudoku_pb2.CheckSudokuRequest, context) -> sudoku_pb2.CheckSudokuResponse:
-        # Предлагаемое решение
+        db = next(get_db())
         proposed_solution = request.solution.strip()  # Удаляем лишние пробелы
 
         # Предварительно проверяем длину строки
@@ -219,6 +221,11 @@ class SudokuServicer(sudoku_pb2_grpc.SudokuServiceServicer):
 
         # Основной вызов проверки
         is_correct = is_valid_grid(grid)
+        if is_correct:
+            user_id = jwt_gen.decode_jwt(request.token)['user_id']
+            sudoku_id = request.sudokuId
+            crud_sudokus.mark_sudoku_solved(db, user_id, sudoku_id)
+
         return sudoku_pb2.CheckSudokuResponse(isCorrect=is_correct)
 
 

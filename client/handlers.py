@@ -130,12 +130,15 @@ def check_sudoku():
     try:
         data = request.get_json()
         solution = data['Solution']
+        sudoku_id = data['SudokuId']
     except Exception as e:
         logging.fatal(f"Invalid request error: {e}")
         return jsonify({'error': 'Invalid request'}), 400
 
     try:
-        response = sudoku_client.CheckSudoku(sudoku_pb2.CheckSudokuRequest(solution=solution), timeout=5)
+        response = sudoku_client.CheckSudoku(sudoku_pb2.CheckSudokuRequest(solution=solution,
+                                                                           token=token,
+                                                                           sudokuId=sudoku_id), timeout=5)
         return jsonify({'isCorrect': response.isCorrect})
     except Exception as e:
         logging.fatal(f'Sudoku check error: {e}')
