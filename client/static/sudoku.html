@@ -116,35 +116,37 @@
         localStorage.removeItem('token');
     }
 
+    function fillInputs(values) {
+    const inputs = document.querySelectorAll('input');
+    inputs.forEach((input, index) => {
+        input.value = values[index] ?? '';
+    });
+}
+
     // Сохраняем текущие заполненные клетки судоку
-    function savePuzzleState() {
-        const form = document.getElementById('sudokuForm');
+function savePuzzleState() {
+    const inputs = document.querySelectorAll('input');
+    const values = Array.from(inputs)
+                       .map(input => input.value === "" ? null : parseInt(input.value));
 
-        const inputs = form.querySelectorAll('input');
-
-        const puzzle = [];
-
-        for (const input of inputs) {
-            const val = parseInt(input.value, 10);
-            puzzle.push(isNaN(val) ? 0 : val);
-        }
-        localStorage.setItem('puzzleState', JSON.stringify(puzzle));
-    }
+    localStorage.setItem('puzzleState', JSON.stringify(values));
+}
 
     // Загружаем сохраненное состояние судоку
-    function loadPuzzleState() {
-        const puzzleStr = localStorage.getItem('puzzleState');
-        if (!puzzleStr) return null;
-        try {
-            const puzzle = JSON.parse(puzzleStr);
-            if (Array.isArray(puzzle) && puzzle.length === 81) {
-                return puzzle;
-            }
-            return null;
-        } catch(e) {
-            return null;
+function loadPuzzleState() {
+    const stateStr = localStorage.getItem('puzzleState');
+    if (!stateStr) return null;
+
+    try {
+        const state = JSON.parse(stateStr);
+
+        if (Array.isArray(state) && state.length === 81) {
+            return state.map(v => v === null ? '' : String(v)); // Преобразуем числа обратно в строки
         }
-    }
+    } catch(e) {}
+
+    return null;
+}
 
     // Проверка авторизации
     const token = localStorage.getItem('token');
@@ -341,17 +343,17 @@
     };
 
     window.onload = () => {
-        const token = getToken();
-        if (!token) {
-          window.location.href = '/login.html';
-          return;
-        }
+    const token = getToken();
+    if (!token) {
+        window.location.href = '/login.html';
+        return;
+    }
 
-        const savedPuzzle = loadPuzzleState();
-        if (savedPuzzle) {
-            fillInputs(savedPuzzle);
-        }
-    };
+    const savedPuzzle = loadPuzzleState();
+    if (savedPuzzle) {
+        fillInputs(savedPuzzle);
+    }
+};
 
     function displayStep(stepIndex) {
         currentStep = stepIndex;
@@ -367,8 +369,8 @@
     document.querySelectorAll('input').forEach(input => {
     input.addEventListener('input', () => {
        savePuzzleState();
-       });
     });
+});
 
 
 function fillTableValues(step) {

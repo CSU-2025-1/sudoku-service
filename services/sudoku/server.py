@@ -3,6 +3,7 @@ from concurrent import futures
 import logging
 from jwt_token import jwt_gen
 from crud import sudokus as crud_sudokus
+import redis
 
 import sys
 sys.path.append(r'../../generated/sudoku')
@@ -16,6 +17,7 @@ logging.basicConfig(level=logging.INFO, filename='app.log')
 
 N = 9
 
+redis_client: redis.Redis | None = redis.Redis(host='localhost', port=6379, db=0)
 
 class SudokuServicer(sudoku_pb2_grpc.SudokuServiceServicer):
     def is_safe(self, board, row, col, num):
@@ -169,7 +171,7 @@ class SudokuServicer(sudoku_pb2_grpc.SudokuServiceServicer):
 
         try:
             user_id = jwt_gen.decode_jwt(request.token)['user_id']
-            solved_boards = crud_sudokus.get_solved_sudokus(db, user_id)
+            solved_boards = redis_client.get(user_id.__str__)
         except Exception as e:
             return sudoku_pb2.GetSudokuResponse(ids=[], boards=[], difficulties=[], isSolved=[], error=str(e))
 

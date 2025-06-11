@@ -37,6 +37,8 @@ services:
   
   solver:
     build: ./services/sudoku
+    depends_on:
+      - redis
     volumes:
       - ./generated:/app/generated
     ports:
@@ -49,7 +51,6 @@ services:
     depends_on: 
       - auth
       - solver
-      - redis
     volumes:
       - ./generated:/app/generated
     ports:
