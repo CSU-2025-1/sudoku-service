@@ -3,7 +3,6 @@ from concurrent import futures
 import logging
 from jwt_token import jwt_gen
 from crud import sudokus as crud_sudokus
-import redis
 
 import sys
 sys.path.append(r'../../generated/sudoku')
@@ -13,11 +12,10 @@ import sudoku_pb2_grpc
 
 from db.database import get_db, init_db
 
-logging.basicConfig(level=logging.INFO, filename='app.log')
 
 N = 9
 
-redis_client: redis.Redis | None = redis.Redis(host='localhost', port=6379, db=0)
+logging.basicConfig(level=logging.INFO, filename='app.log')
 
 
 class SudokuServicer(sudoku_pb2_grpc.SudokuServiceServicer):
@@ -172,7 +170,22 @@ class SudokuServicer(sudoku_pb2_grpc.SudokuServiceServicer):
 
         try:
             user_id = jwt_gen.decode_jwt(request.token)['user_id']
-            solved_boards = redis_client.get(user_id.__str__)
+            # solved_boards_raw = redis_client.get(user_id.__str__)
+            #
+            # # Преобразуем строку в список целых чисел
+            # if solved_boards_raw:
+            #     solved_boards = solved_boards_raw.split(',')
+            # else:
+            #     solved_boards = []
+
+            # import redis
+            # redis_client = redis.Redis(host='redis', port=6379, decode_responses=True)
+            # try:
+            #     if redis_client.ping():
+            #         logging.info("Подключение к Redis успешно!")
+            # except redis.ConnectionError:
+            #     logging.info("Не удалось подключиться к Redis.")
+            solved_boards = crud_sudokus.get_solved_sudokus(db, user_id)
         except Exception as e:
             return sudoku_pb2.GetSudokuResponse(ids=[], boards=[], difficulties=[], isSolved=[], error=str(e))
 
@@ -225,10 +238,21 @@ class SudokuServicer(sudoku_pb2_grpc.SudokuServiceServicer):
         if is_correct:
             user_id = jwt_gen.decode_jwt(request.token)['user_id']
             sudoku_id = request.sudokuId
-            solved_sudokus = redis_client.get(user_id.__str__)
-            if solved_sudokus is None:
-                solved_sudokus = [sudoku_id]
-            redis_client.set(user_id.__str__, solved_sudokus.append(sudoku_id.__str__))
+            crud_sudokus.mark_sudoku_solved(db, user_id, sudoku_id)
+
+            # # Получаем ранее решённые судоку из Redis
+            # existing_solved = redis_client.get(user_id.__str__)
+            # if existing_solved is not None:
+            #     # Преобразуем строку в список строковых id
+            #     existing_solved = existing_solved.split(',')
+            # else:
+            #     existing_solved = []
+            #
+            # # Добавляем новый решённый судоку
+            # existing_solved.append(sudoku_id.__str__())
+            #
+            # # Преобразуем список обратно в строку и сохраняем в Redis
+            # redis_client.set(user_id.__str__, ','.join(existing_solved))
 
         return sudoku_pb2.CheckSudokuResponse(isCorrect=is_correct)
 
