@@ -86,7 +86,7 @@ let currentSudoku = null;
 
 // Загрузка списка судоку
 async function loadSudokus() {
-    const response = await fetch(`/api/sudoku`, {
+    const response = await fetch(`http://localhost:8000/api/sudoku`, {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',
@@ -187,7 +187,7 @@ async function checkSolution() {
     const solutionStr = solution.map(num => num.toString()).join('');
 
     // Отправляем на проверку
-    const response = await fetch(`/api/check_sudoku`, {
+    const response = await fetch(`http://localhost:8000/api/check_sudoku`, {
       method:'POST',
       headers: {
                 'Content-Type': 'application/json',

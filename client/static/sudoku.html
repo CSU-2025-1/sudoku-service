@@ -303,7 +303,7 @@
         document.getElementById('resultTitle').style.display = 'block';
         const resultTable = document.getElementById('resultTable');
         resultTable.querySelector('tbody').innerHTML = ''; // Удаляем предыдущую таблицу результатов
-        sendRequest('/api/solve', false); // Отправляем запрос на решение
+        sendRequest('http://localhost:8000/api/solve', false); // Отправляем запрос на решение
     };
 
     document.getElementById('stepButton').onclick = function() {
@@ -316,7 +316,7 @@
         document.getElementById('resultTitle').style.display = 'none';
         resultTable.querySelector('tbody').innerHTML = ''; // Удаляем таблицу результатов
         document.getElementById('stepControls').style.display = 'block'; // Показываем кнопки шагов
-        sendRequest('/api/solve', true);
+        sendRequest('http://localhost:8000/api/solve', true);
     };
 
     document.getElementById('prevStepButton').onclick = function() {
