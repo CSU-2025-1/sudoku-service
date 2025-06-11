@@ -19,6 +19,7 @@ N = 9
 
 redis_client: redis.Redis | None = redis.Redis(host='localhost', port=6379, db=0)
 
+
 class SudokuServicer(sudoku_pb2_grpc.SudokuServiceServicer):
     def is_safe(self, board, row, col, num):
         for x in range(N):
