@@ -11,7 +11,7 @@ services:
       - sudoku_network
 
   redis:
-    image: redis:latest
+    image: redis:8
     container_name: redis
     restart: always
     ports:
@@ -51,10 +51,23 @@ services:
     depends_on: 
       - auth
       - solver
+      - gateway
     volumes:
       - ./generated:/app/generated
     ports:
       - "8080:8080"
+    networks:
+      - sudoku_network
+  
+  gateway:
+    build: ./api_gateway
+    depends_on: 
+      - auth
+      - solver
+    volumes:
+      - ./generated:/app/generated
+    ports:
+      - "8000:8000"
     networks:
       - sudoku_network
 
