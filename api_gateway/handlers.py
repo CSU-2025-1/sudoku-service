@@ -15,6 +15,8 @@ import sudoku_pb2
 import sudoku_pb2_grpc
 
 from jwt_token.jwt_check import check_token_valid
+from schemas.users import UserRegister, UserLogin
+from schemas.sudokus import SolveSudokuRequest, CheckSudokuRequest
 
 app = FastAPI()
 
@@ -26,7 +28,6 @@ sudoku_client = None
 async def lifespan(app: FastAPI):
     global auth_client, sudoku_client
 
-    # Создаем каналы при старте приложения
     auth_channel = grpc_async.insecure_channel('auth:50052')
     auth_client = auth_pb2_grpc.AuthServiceStub(auth_channel)
 
@@ -35,7 +36,6 @@ async def lifespan(app: FastAPI):
 
     yield
 
-    # Можно закрыть каналы по завершении
     await auth_channel.close()
     await sudoku_channel.close()
 
@@ -67,7 +67,9 @@ async def verify_token(request: Request):
 
 
 @app.post("/api/register")
-async def handle_register(request: Request, client=Depends(get_auth_client)):
+async def handle_register(request: Request, 
+                          model: UserRegister,
+                          client=Depends(get_auth_client)):
     try:
         data = await request.json()
         username = data["username"]
@@ -87,7 +89,9 @@ async def handle_register(request: Request, client=Depends(get_auth_client)):
 
 
 @app.post("/api/login")
-async def handle_login(request: Request, client=Depends(get_auth_client)):
+async def handle_login(request: Request,
+                       model: UserLogin,
+                       client=Depends(get_auth_client)):
     try:
         data = await request.json()
         username = data["username"]
@@ -111,7 +115,9 @@ async def handle_login(request: Request, client=Depends(get_auth_client)):
 
 
 @app.post("/api/solve")
-async def handle_solve(request: Request, client=Depends(get_sudoku_client)):
+async def handle_solve(request: Request, 
+                       model: SolveSudokuRequest,
+                       client=Depends(get_sudoku_client)):
     await verify_token(request)
 
     try:
@@ -154,7 +160,9 @@ async def get_sudokus(request: Request, client=Depends(get_sudoku_client)):
 
 
 @app.post("/api/check_sudoku")
-async def check_sudoku(request: Request, client=Depends(get_sudoku_client)):
+async def check_sudoku(request: Request, 
+                       model: CheckSudokuRequest,
+                       client=Depends(get_sudoku_client)):
     token = request.headers.get('Authorization')
     await verify_token(request)
 
