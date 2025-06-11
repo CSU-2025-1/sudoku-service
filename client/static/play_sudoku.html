@@ -93,11 +93,10 @@ async function loadSudokus() {
                 'Authorization': token,
             }
         });
-    const data = await response.json();  // получаем сырые данные от сервера
-    console.log(data);                   // полезно проверить формат данных
 
     if (response.ok) {
-        // Собираем список судоку, комбинируя идентификаторы, доски, сложность и статус решения
+        const data = await response.json();
+        console.log(data);
         let sudokus = [];
         for(let i = 0; i < data.ids.length; i++) {
             sudokus.push({
@@ -122,25 +121,25 @@ function renderSudokuList(sudokus) {
     sudokus.forEach((sudoku) => {
         const btn = document.createElement('button');
         const statusEmoji = sudoku.isSolved ? "🟢" : "🔴";
-        btn.setAttribute('data-id', sudoku.id);
         btn.textContent = `Судоку ${sudoku.id}, Сложность: ${sudoku.difficulty} ${statusEmoji}`;
-        btn.onclick = () => loadSudoku(sudoku.board);
+        btn.onclick = () => loadSudoku(sudoku.id, sudoku.board);
         container.appendChild(btn);
     });
 }
 
 // Загрузка конкретного судоку
-async function loadSudoku(board) {
-    renderSudoku(board);
+async function loadSudoku(sudoku_id, board) {
+    renderSudoku(sudoku_id, board);
 }
 
 // Отрисовка судоку
-function renderSudoku(puzzleString) {
+function renderSudoku(sudoku_id, puzzleString) {
     const container = document.getElementById('currentSudoku');
     container.innerHTML = '';
 
     const table = document.createElement('table');
     const tbody = document.createElement('tbody');
+    currentSudoku = sudoku_id;
 
     // Преобразуем входящую строку в массив из 81 элемента
     const puzzleArray = [...puzzleString].map(char => char !== '0' ? parseInt(char) : '');
@@ -194,24 +193,20 @@ async function checkSolution() {
                 'Content-Type': 'application/json',
                 'Authorization': token,
             },
-      body: JSON.stringify({ Solution: solutionStr })
+      body: JSON.stringify({ Solution: solutionStr, SudokuId: currentSudoku })
     });
 
     const resultData = await response.json();
 
-    if (resultData.isCorrect) {
-        changeStatusIndicator(currentSudoku.id, true);
+    if (resultData.isCorrect && currentSudoku !== null) {
+        const buttons = document.querySelectorAll('#sudokuList button');
+        buttons.forEach(button => {
+            if (button.textContent.includes(`Судоку ${currentSudoku},`)) {
+                button.textContent = button.textContent.replace('🔴', '🟢');
+            }
+        });
     }
     document.getElementById('resultMsg').textContent= resultData.isCorrect ? 'Решение верное!' : 'Решение неверное!';
-}
-
-function changeStatusIndicator(sudokuId, isCorrect) {
-    const buttons = document.querySelectorAll(`#sudokuList button[data-id="${sudokuId}"]`);
-    buttons.forEach(button => {
-        if (isCorrect) {
-            button.textContent = button.textContent.replace(/🔴/, "🟢");
-        }
-    });
 }
 
 // Обработка выхода из аккаунта

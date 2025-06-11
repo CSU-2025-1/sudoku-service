@@ -118,18 +118,18 @@
 
     // Сохраняем текущие заполненные клетки судоку
     function savePuzzleState() {
-    const form = document.getElementById('sudokuForm');
-    
-    const inputs = form.querySelectorAll('input');
+        const form = document.getElementById('sudokuForm');
 
-    const puzzle = [];
+        const inputs = form.querySelectorAll('input');
 
-    for (const input of inputs) {
-        const val = parseInt(input.value, 10);
-        puzzle.push(isNaN(val) ? 0 : val);
+        const puzzle = [];
+
+        for (const input of inputs) {
+            const val = parseInt(input.value, 10);
+            puzzle.push(isNaN(val) ? 0 : val);
+        }
+        localStorage.setItem('puzzleState', JSON.stringify(puzzle));
     }
-    localStorage.setItem('puzzleState', JSON.stringify(puzzle));
-}
 
     // Загружаем сохраненное состояние судоку
     function loadPuzzleState() {

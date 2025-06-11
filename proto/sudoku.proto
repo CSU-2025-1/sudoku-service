@@ -33,9 +33,11 @@ message GetSudokuResponse {
 }
 
 message CheckSudokuRequest {
-    string solution = 1;
+  string solution = 1;
+  string token = 2;
+  int32 sudokuId = 3;
 }
 
 message CheckSudokuResponse {
-    bool isCorrect = 1;
+  bool isCorrect = 1;
 }

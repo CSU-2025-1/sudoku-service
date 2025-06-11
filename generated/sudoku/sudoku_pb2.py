@@ -24,7 +24,7 @@ _sym_db = _symbol_database.Default()
 
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x0csudoku.proto\x12\x06sudoku\"0\n\rSudokuRequest\x12\x0e\n\x06puzzle\x18\x01 \x01(\t\x12\x0f\n\x07isSteps\x18\x02 \x01(\x08\"1\n\x0eSudokuResponse\x12\x10\n\x08solution\x18\x01 \x01(\t\x12\r\n\x05\x65rror\x18\x02 \x01(\t\"!\n\x10GetSudokuRequest\x12\r\n\x05token\x18\x01 \x01(\t\"g\n\x11GetSudokuResponse\x12\x0b\n\x03ids\x18\x01 \x03(\x05\x12\x0e\n\x06\x62oards\x18\x02 \x03(\t\x12\x14\n\x0c\x64ifficulties\x18\x03 \x03(\x05\x12\x10\n\x08isSolved\x18\x04 \x03(\x08\x12\r\n\x05\x65rror\x18\x05 \x01(\t\"&\n\x12\x43heckSudokuRequest\x12\x10\n\x08solution\x18\x01 \x01(\t\"(\n\x13\x43heckSudokuResponse\x12\x11\n\tisCorrect\x18\x01 \x01(\x08\x32\xd5\x01\n\rSudokuService\x12\x36\n\x05Solve\x12\x15.sudoku.SudokuRequest\x1a\x16.sudoku.SudokuResponse\x12\x44\n\rGetSudokuList\x12\x18.sudoku.GetSudokuRequest\x1a\x19.sudoku.GetSudokuResponse\x12\x46\n\x0b\x43heckSudoku\x12\x1a.sudoku.CheckSudokuRequest\x1a\x1b.sudoku.CheckSudokuResponseB\tZ\x07/sudokub\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x0csudoku.proto\x12\x06sudoku\"0\n\rSudokuRequest\x12\x0e\n\x06puzzle\x18\x01 \x01(\t\x12\x0f\n\x07isSteps\x18\x02 \x01(\x08\"1\n\x0eSudokuResponse\x12\x10\n\x08solution\x18\x01 \x01(\t\x12\r\n\x05\x65rror\x18\x02 \x01(\t\"!\n\x10GetSudokuRequest\x12\r\n\x05token\x18\x01 \x01(\t\"g\n\x11GetSudokuResponse\x12\x0b\n\x03ids\x18\x01 \x03(\x05\x12\x0e\n\x06\x62oards\x18\x02 \x03(\t\x12\x14\n\x0c\x64ifficulties\x18\x03 \x03(\x05\x12\x10\n\x08isSolved\x18\x04 \x03(\x08\x12\r\n\x05\x65rror\x18\x05 \x01(\t\"G\n\x12\x43heckSudokuRequest\x12\x10\n\x08solution\x18\x01 \x01(\t\x12\r\n\x05token\x18\x02 \x01(\t\x12\x10\n\x08sudokuId\x18\x03 \x01(\x05\"(\n\x13\x43heckSudokuResponse\x12\x11\n\tisCorrect\x18\x01 \x01(\x08\x32\xd5\x01\n\rSudokuService\x12\x36\n\x05Solve\x12\x15.sudoku.SudokuRequest\x1a\x16.sudoku.SudokuResponse\x12\x44\n\rGetSudokuList\x12\x18.sudoku.GetSudokuRequest\x1a\x19.sudoku.GetSudokuResponse\x12\x46\n\x0b\x43heckSudoku\x12\x1a.sudoku.CheckSudokuRequest\x1a\x1b.sudoku.CheckSudokuResponseB\tZ\x07/sudokub\x06proto3')
 
 _globals = globals()
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
@@ -41,9 +41,9 @@ if not _descriptor._USE_C_DESCRIPTORS:
   _globals['_GETSUDOKURESPONSE']._serialized_start=160
   _globals['_GETSUDOKURESPONSE']._serialized_end=263
   _globals['_CHECKSUDOKUREQUEST']._serialized_start=265
-  _globals['_CHECKSUDOKUREQUEST']._serialized_end=303
-  _globals['_CHECKSUDOKURESPONSE']._serialized_start=305
-  _globals['_CHECKSUDOKURESPONSE']._serialized_end=345
-  _globals['_SUDOKUSERVICE']._serialized_start=348
-  _globals['_SUDOKUSERVICE']._serialized_end=561
+  _globals['_CHECKSUDOKUREQUEST']._serialized_end=336
+  _globals['_CHECKSUDOKURESPONSE']._serialized_start=338
+  _globals['_CHECKSUDOKURESPONSE']._serialized_end=378
+  _globals['_SUDOKUSERVICE']._serialized_start=381
+  _globals['_SUDOKUSERVICE']._serialized_end=594
 # @@protoc_insertion_point(module_scope)

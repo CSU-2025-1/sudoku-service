@@ -1,3 +1,5 @@
+import logging
+
 from sqlalchemy.orm import Session
 from db.models import SudokuModel, SolvedSudokuModel
 
@@ -36,4 +38,7 @@ def mark_sudoku_solved(db: Session, user_id: int, sudoku_id: int) -> SolvedSudok
 
 
 def get_solved_sudokus(db: Session, user_id: int):
-    return db.query(SolvedSudokuModel.sudoku_id).filter(SolvedSudokuModel.user_id == user_id).all()
+    solved_sudoku_records = db.query(SolvedSudokuModel.sudoku_id) \
+        .filter(SolvedSudokuModel.user_id == user_id) \
+        .all()
+    return [record[0] for record in solved_sudoku_records]
