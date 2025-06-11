@@ -116,6 +116,13 @@
         localStorage.removeItem('token');
     }
 
+    function fillInputs(values) {
+    const inputs = document.querySelectorAll('input');
+    inputs.forEach((input, index) => {
+        input.value = values[index] ?? '';
+    });
+}
+
     // Сохраняем текущие заполненные клетки судоку
     function savePuzzleState() {
         const inputs = document.querySelectorAll('input');
@@ -375,14 +382,13 @@
             for (let colIndex = 0; colIndex < 9; colIndex++) {
                 const cellValue = step[rowIndex][colIndex];
 
-                if (cellValue === null || cellValue === '') {
+                if (cellValue === null || cellValue === '' || cellValue === 0 || cellValue === '0') {
                     cells[rowIndex * 9 + colIndex].innerText = '';
                 } else {
                     cells[rowIndex * 9 + colIndex].innerText = cellValue.toString();
                 }
             }
         }
-    }
 
     function fillInputs(step) {
         const inputs = document.querySelectorAll('input');
