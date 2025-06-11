@@ -115,31 +115,6 @@
         localStorage.removeItem('token');
     }
 
-    // Сохраняем текущие заполненные клетки судоку
-    function savePuzzleState() {
-        const inputs = document.querySelectorAll('input');
-        const values = Array.from(inputs)
-                           .map(input => input.value === "" ? null : parseInt(input.value));
-
-        localStorage.setItem('puzzleState', JSON.stringify(values));
-    }
-
-    // Загружаем сохраненное состояние судоку
-    function loadPuzzleState() {
-        const stateStr = localStorage.getItem('puzzleState');
-        if (!stateStr) return null;
-
-        try {
-            const state = JSON.parse(stateStr);
-
-            if (Array.isArray(state) && state.length === 81) {
-                return state.map(v => v === null ? '' : String(v)); // Преобразуем числа обратно в строки
-            }
-        } catch(e) {}
-
-        return null;
-    }
-
     // Проверка авторизации
     const token = localStorage.getItem('token');
     if (!token) {
@@ -170,9 +145,6 @@
             return;
         }
 
-        // Можно добавить регулярную проверку срока действия токена, если есть серверная поддержка.
-        // Например, отправить запрос на проверку или использовать JWT с истечением срока.
-
         // Собираем текущие данные судоку
         const inputs = document.querySelectorAll('input');
         const inputValues = [];
@@ -182,9 +154,6 @@
                 inputValues.push(isNaN(value) ? 0 : value);
             }
         }
-
-        // Сохраняем состояние перед отправкой
-        savePuzzleState();
 
         // Отправляем запрос
         const response = await fetch(endpoint, {
@@ -339,11 +308,6 @@
             window.location.href = '/login.html';
             return;
         }
-
-        const savedPuzzle = loadPuzzleState();
-        if (savedPuzzle) {
-            fillInputs(savedPuzzle);
-        }
     };
 
     function displayStep(stepIndex) {
@@ -355,31 +319,6 @@
         // Обновляем видимость кнопок "вперёд" и "назад"
         document.getElementById('prevStepButton').disabled = currentStep === 0;
         document.getElementById('nextStepButton').disabled = currentStep === steps.length - 1;
-    }
-
-    document.querySelectorAll('input').forEach(input => {
-        input.addEventListener('input', () => {
-           savePuzzleState();
-        });
-    });
-
-
-    function fillTableValues(step) {
-        const table = document.querySelector('#sudokuForm table');
-
-        const cells = table.querySelectorAll('td');
-
-        for (let rowIndex = 0; rowIndex < 9; rowIndex++) {
-            for (let colIndex = 0; colIndex < 9; colIndex++) {
-                const cellValue = step[rowIndex][colIndex];
-
-                if (cellValue === null || cellValue === '' || cellValue === 0 || cellValue === '0') {
-                    cells[rowIndex * 9 + colIndex].innerText = '';
-                } else {
-                    cells[rowIndex * 9 + colIndex].innerText = cellValue.toString();
-                }
-            }
-        }
     }
 
     function fillInputs(step) {

@@ -5,6 +5,7 @@ from contextlib import asynccontextmanager
 import logging
 
 import sys
+
 sys.path.append('../generated/auth')
 sys.path.append('../generated/sudoku')
 
@@ -19,6 +20,7 @@ app = FastAPI()
 
 auth_client = None
 sudoku_client = None
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -60,10 +62,12 @@ async def verify_token(request: Request):
         raise HTTPException(status_code=401, detail="Invalid token")
     return True
 
+
 ################# ROUTES #################
 
+
 @app.post("/api/register")
-async def handle_register(request: Request, client = Depends(get_auth_client)):
+async def handle_register(request: Request, client=Depends(get_auth_client)):
     try:
         data = await request.json()
         username = data["username"]
@@ -78,11 +82,12 @@ async def handle_register(request: Request, client = Depends(get_auth_client)):
         )
         return {"success": response.success}
     except grpc.RpcError as e:
-        raise HTTPException(status_code=500, detail=f"gRPC error")
+        logging.fatal(f'Register error: {e}')
+        raise HTTPException(status_code=500, detail=f"Register error")
 
 
 @app.post("/api/login")
-async def handle_login(request: Request, client = Depends(get_auth_client)):
+async def handle_login(request: Request, client=Depends(get_auth_client)):
     try:
         data = await request.json()
         username = data["username"]
@@ -101,11 +106,12 @@ async def handle_login(request: Request, client = Depends(get_auth_client)):
             "message": ""
         }
     except grpc.RpcError as e:
+        logging.fatal(f'Login error: {e}')
         raise HTTPException(status_code=500, detail=f"Login failed")
-    
+
 
 @app.post("/api/solve")
-async def handle_solve(request: Request, client = Depends(get_sudoku_client)):
+async def handle_solve(request: Request, client=Depends(get_sudoku_client)):
     await verify_token(request)
 
     try:
@@ -122,11 +128,12 @@ async def handle_solve(request: Request, client = Depends(get_sudoku_client)):
         )
         return {"solution": response.solution}
     except grpc.RpcError as e:
+        logging.fatal(f'Sudoku solve error: {e}')
         raise HTTPException(status_code=500, detail=f"Sudoku solve error")
-    
+
 
 @app.get("/api/sudoku")
-async def get_sudokus(request: Request, client = Depends(get_sudoku_client)):
+async def get_sudokus(request: Request, client=Depends(get_sudoku_client)):
     token = request.headers.get('Authorization')
     await verify_token(request)
 
@@ -146,9 +153,9 @@ async def get_sudokus(request: Request, client = Depends(get_sudoku_client)):
         raise HTTPException(status_code=500, detail=f"Не удалось получить судоку")
 
 
-
 @app.post("/api/check_sudoku")
-async def check_sudoku(request: Request, client = Depends(get_sudoku_client)):
+async def check_sudoku(request: Request, client=Depends(get_sudoku_client)):
+    token = request.headers.get('Authorization')
     await verify_token(request)
 
     try:
@@ -160,9 +167,12 @@ async def check_sudoku(request: Request, client = Depends(get_sudoku_client)):
 
     try:
         response = await client.CheckSudoku(
-            sudoku_pb2.CheckSudokuRequest(solution=solution, sudokuId=sudoku_id),
+            sudoku_pb2.CheckSudokuRequest(solution=solution,
+                                          token=token,
+                                          sudokuId=sudoku_id),
             timeout=5
         )
         return {"isCorrect": response.isCorrect}
     except grpc.RpcError as e:
+        logging.fatal(f'Sudoku check error: {e}')
         raise HTTPException(status_code=500, detail=f"Sudoku check error")

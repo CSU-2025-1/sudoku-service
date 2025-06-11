@@ -41,3 +41,5 @@ message CheckSudokuRequest {
 message CheckSudokuResponse {
   bool isCorrect = 1;
 }
+
+

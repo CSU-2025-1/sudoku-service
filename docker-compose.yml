@@ -21,6 +21,8 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+    networks:
+      - sudoku_network
 
   auth:
     build: ./services/auth
